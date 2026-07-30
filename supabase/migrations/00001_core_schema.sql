@@ -12,60 +12,7 @@ CREATE TYPE church_role AS ENUM ('church_admin', 'worship_director', 'member');
 CREATE TYPE service_status AS ENUM ('planned', 'active', 'completed');
 
 -- ============================================================
--- 2. HELPER FUNCTIONS (SECURITY DEFINER)
--- ============================================================
-
--- Returns true if auth.uid() is a member of the given church
-CREATE OR REPLACE FUNCTION is_church_member(church_uuid uuid)
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-STABLE
-SET search_path = ''
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM church_memberships
-    WHERE user_id = auth.uid()
-      AND church_id = church_uuid
-  );
-$$;
-
--- Returns true if auth.uid() has at least the given role in the church
-CREATE OR REPLACE FUNCTION has_church_role(church_uuid uuid, min_role church_role)
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-STABLE
-SET search_path = ''
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM church_memberships
-    WHERE user_id = auth.uid()
-      AND church_id = church_uuid
-      AND (
-        role = min_role
-        OR (min_role = 'worship_director' AND role = 'church_admin')
-        OR (min_role = 'member' AND role IN ('church_admin', 'worship_director'))
-      )
-  );
-$$;
-
--- Returns true if auth.uid() is a global curator
-CREATE OR REPLACE FUNCTION is_curator()
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-STABLE
-SET search_path = ''
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM global_curators
-    WHERE user_id = auth.uid()
-  );
-$$;
-
--- ============================================================
--- 3. TABLES
+-- 2. TABLES
 -- ============================================================
 
 -- 3.1 churches — root of all tenancy
@@ -219,6 +166,65 @@ CREATE TABLE service_member_roles (
   role                    text NOT NULL,
   PRIMARY KEY (service_participant_id, role)
 );
+
+-- ============================================================
+-- 3. HELPER FUNCTIONS (SECURITY DEFINER)
+-- ============================================================
+
+-- Returns true if auth.uid() is a member of the given church
+CREATE OR REPLACE FUNCTION is_church_member(church_uuid uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM church_memberships
+    WHERE user_id = auth.uid()
+      AND church_id = church_uuid
+  );
+END;
+$$;
+
+-- Returns true if auth.uid() has at least the given role in the church
+CREATE OR REPLACE FUNCTION has_church_role(church_uuid uuid, min_role church_role)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM church_memberships
+    WHERE user_id = auth.uid()
+      AND church_id = church_uuid
+      AND (
+        role = min_role
+        OR (min_role = 'worship_director' AND role = 'church_admin')
+        OR (min_role = 'member' AND role IN ('church_admin', 'worship_director'))
+      )
+  );
+END;
+$$;
+
+-- Returns true if auth.uid() is a global curator
+CREATE OR REPLACE FUNCTION is_curator()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM global_curators
+    WHERE user_id = auth.uid()
+  );
+END;
+$$;
 
 -- ============================================================
 -- 4. INDEXES
