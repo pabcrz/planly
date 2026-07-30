@@ -636,9 +636,9 @@ Create `src/services/peopleService.ts` with: `getPeople(churchId)` (joins church
 - `src/services/peopleService.ts` — profile CRUD
 
 #### Validation
-- [ ] `getTeams(churchId)` returns only church's teams
-- [ ] `addMember` creates team_members row; `getMembers` returns joined data
-- [ ] `createProfile` creates people row; RLS allows only own membership_id
+- [x] `getTeams(churchId)` returns only church's teams
+- [x] `addMember` creates team_members row; `getMembers` returns joined data
+- [x] `createProfile` creates people row; RLS allows only own membership_id
 
 #### Spec coverage
 - teams/team-listing, teams/team-create-and-edit, teams/team-delete, teams/team-member-management, teams/people-profiles
@@ -667,10 +667,10 @@ Create `src/features/teams/TeamDetailPage.tsx` — team info + member roster. Ro
 - `src/features/teams/TeamDetailPage.tsx` — team detail + roster
 
 #### Validation
-- [ ] Team list shows all church teams
-- [ ] Worship director creates "Sunday Band" → appears in list
-- [ ] Member sees teams but no create/edit/delete controls
-- [ ] Team detail shows member roster
+- [x] Team list shows all church teams
+- [x] Worship director creates "Sunday Band" → appears in list
+- [x] Member sees teams but no create/edit/delete controls
+- [x] Team detail shows member roster
 
 #### Spec coverage
 - teams/team-listing, teams/team-create-and-edit, teams/team-delete, auth/role-based-ui-access
@@ -690,9 +690,9 @@ Create `src/features/teams/TeamMembers.tsx` — member roster table within TeamD
 - `src/features/teams/TeamMembers.tsx` — roster management
 
 #### Validation
-- [ ] Member roster shows people with display_name + instruments
-- [ ] Add member dropdown lists only church members not in team
-- [ ] Remove member removes from team_members; roster updates
+- [x] Member roster shows people with display_name + instruments
+- [x] Add member dropdown lists only church members not in team
+- [x] Remove member removes from team_members; roster updates
 
 #### Spec coverage
 - teams/team-member-management
@@ -718,10 +718,10 @@ Create `src/features/teams/ProfileForm.tsx` — own-profile editor. Fields: disp
 - `src/features/teams/ProfileForm.tsx` — own-profile editor
 
 #### Validation
-- [ ] People list shows all church members with profiles
-- [ ] Edit own profile: update instruments + roles → changes visible to others
-- [ ] First visit to `/profile` auto-creates `people` row with default display_name
-- [ ] Cannot edit another member's profile (RLS enforcement, error toast)
+- [x] People list shows all church members with profiles
+- [x] Edit own profile: update instruments + roles → changes visible to others
+- [x] First visit to `/profile` auto-creates `people` row with default display_name
+- [x] Cannot edit another member's profile (RLS enforcement, error toast)
 
 #### Spec coverage
 - teams/people-profiles, teams/musical-roles-and-instruments, auth/profile-management
