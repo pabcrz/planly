@@ -422,8 +422,8 @@ Create `src/lib/chordpro/types.ts` with AST interfaces: `ChordProDocument` (titl
 - `src/lib/chordpro/types.ts` — ChordPro AST interfaces
 
 #### Validation
-- [ ] All types compile; importable from `@/lib/chordpro/types`
-- [ ] `ChordSegment` and `LyricSegment` discriminated by `type` field
+- [x] All types compile; importable from `@/lib/chordpro/types`
+- [x] `ChordSegment` and `LyricSegment` discriminated by `type` field
 
 #### Spec coverage
 - chordpro/chordpro-parser, chordpro/lyrics-only-render, chordpro/lyrics+chords-render
@@ -443,11 +443,11 @@ Create `src/lib/chordpro/parser.ts` with `parseChordPro(source: string): ChordPr
 - `src/lib/chordpro/parser.ts` — ChordPro → AST
 
 #### Validation
-- [ ] `{title: Amazing Grace}` produces `document.title = "Amazing Grace"`
-- [ ] `{start_of_chorus}\n[G]Holy\n{end_of_chorus}` produces section.type = "chorus"
-- [ ] Line `[Am]Amazing [C]grace` produces 4 segments: chord-lyric-chord-lyric
-- [ ] Empty lines preserved as empty `ChordProLine` with no segments
-- [ ] Unknown directive `{foo: bar}` does not throw
+- [x] `{title: Amazing Grace}` produces `document.title = "Amazing Grace"`
+- [x] `{start_of_chorus}\n[G]Holy\n{end_of_chorus}` produces section.type = "chorus"
+- [x] Line `[Am]Amazing [C]grace` produces 4 segments: chord-lyric-chord-lyric
+- [x] Empty lines preserved as empty `ChordProLine` with no segments
+- [x] Unknown directive `{foo: bar}` does not throw
 
 #### Spec coverage
 - chordpro/chordpro-parser, chordpro/section-block-directives, chordpro/edge-cases
@@ -468,8 +468,8 @@ Create `src/lib/chordpro/parser.test.ts` with Vitest tests covering: title/key d
 - `src/lib/transposition/transposer.test.ts` — transposer unit tests (stub)
 
 #### Validation
-- [ ] `npx vitest run src/lib/chordpro/` passes all parser tests
-- [ ] Tests cover all 8 parser spec scenarios
+- [x] `npx vitest run src/lib/chordpro/` passes all parser tests
+- [x] Tests cover all 8 parser spec scenarios
 
 #### Spec coverage
 - chordpro/chordpro-parser, chordpro/section-block-directives, chordpro/edge-cases
@@ -489,10 +489,10 @@ Create `src/lib/chordpro/renderer.tsx` exporting `<ChordProRenderer>` component.
 - `src/lib/chordpro/renderer.tsx` — AST → React lyrics/chords view
 
 #### Validation
-- [ ] Lyrics mode: `[Am]Amazing grace` → "Amazing grace"
-- [ ] Chords mode: `[Am]Amazing` shows "Am" above "Amazing"
-- [ ] Section label "CHORUS" shown at section start
-- [ ] Empty line produces visual paragraph break
+- [x] Lyrics mode: `[Am]Amazing grace` → "Amazing grace"
+- [x] Chords mode: `[Am]Amazing` shows "Am" above "Amazing"
+- [x] Section label "CHORUS" shown at section start
+- [x] Empty line produces visual paragraph break
 
 #### Spec coverage
 - chordpro/lyrics-only-render, chordpro/lyrics+chords-render
@@ -512,11 +512,11 @@ Create `src/lib/transposition/transposer.ts` with `transposeChord(chord: string,
 - `src/lib/transposition/transposer.ts` — chord transposition engine
 
 #### Validation
-- [ ] `transposeChord('C', 2)` → `'D'`
-- [ ] `transposeChord('C', -1)` → `'B'`
-- [ ] `transposeChord('C/G', 2)` → `'D/A'`
-- [ ] `transposeChord('C#m7', 1)` → `'Dm7'`
-- [ ] `transposeChord('F#maj7', 12)` → `'F#maj7'` (wrap-around)
+- [x] `transposeChord('C', 2)` → `'D'`
+- [x] `transposeChord('C', -1)` → `'B'`
+- [x] `transposeChord('C/G', 2)` → `'D/A'`
+- [x] `transposeChord('C#m7', 1)` → `'Dm7'`
+- [x] `transposeChord('F#maj7', 12)` → `'F#maj7'` (wrap-around)
 
 #### Spec coverage
 - chordpro/transposition-engine, chordpro/chord-notation-support
@@ -546,9 +546,9 @@ All functions throw on RLS denial. Search uses `.ilike()` for title/author, `.co
 - `src/services/songService.ts` — song CRUD + repertoire + variants
 
 #### Validation
-- [ ] `getSongs(churchId)` returns canonical songs + church-owned songs
-- [ ] `createSong({title: "Test", church_id: X})` auto-creates repertoire row
-- [ ] `adoptSong(X, canonicalSongId)` creates church_repertoire row
+- [x] `getSongs(churchId)` returns canonical songs + church-owned songs
+- [x] `createSong({title: "Test", church_id: X})` auto-creates repertoire row
+- [x] `adoptSong(X, canonicalSongId)` creates church_repertoire row
 
 #### Spec coverage
 - song-catalog/song-listing, song-catalog/song-create, song-catalog/church-repertoire-adoption, song-catalog/church-local-variants, song-catalog/tags-and-search
@@ -571,11 +571,11 @@ Create `src/features/songs/SongCard.tsx` — list item showing title, author, ke
 - `src/features/songs/SongCard.tsx` — song list item
 
 #### Validation
-- [ ] Song list shows all accessible songs for the church
-- [ ] Search "grace" filters by title/author (case-insensitive)
-- [ ] Tag dropdown filters by tag
-- [ ] Member role sees no "New Song" or edit/delete actions
-- [ ] Worship director sees "New Song" button
+- [x] Song list shows all accessible songs for the church
+- [x] Search "grace" filters by title/author (case-insensitive)
+- [x] Tag dropdown filters by tag
+- [x] Member role sees no "New Song" or edit/delete actions
+- [x] Worship director sees "New Song" button
 
 #### Spec coverage
 - song-catalog/song-listing, song-catalog/tags-and-search, auth/role-based-ui-access
@@ -605,11 +605,11 @@ Create `src/features/songs/VersionForm.tsx` — version editor: `version_name`, 
 - `src/features/songs/ChordProEditor.tsx` — textarea + preview toggle
 
 #### Validation
-- [ ] Create church-owned song with title "Amazing Grace" → appears in list
-- [ ] Edit song author → updates in list
-- [ ] Delete song → removed from list
-- [ ] Add version with ChordPro content → preview renders lyrics+chords
-- [ ] Version created with key "G" displays key badge
+- [x] Create church-owned song with title "Amazing Grace" → appears in list
+- [x] Edit song author → updates in list
+- [x] Delete song → removed from list
+- [x] Add version with ChordPro content → preview renders lyrics+chords
+- [x] Version created with key "G" displays key badge
 
 #### Spec coverage
 - song-catalog/song-create, song-catalog/song-edit-and-delete, song-catalog/song-versions

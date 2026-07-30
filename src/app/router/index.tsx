@@ -29,10 +29,11 @@ function lazyPlaceholder(title: string) {
   )
 }
 
-const SongListPage = lazyPlaceholder('Songs')
-const SongNewPage = lazyPlaceholder('New song')
-const SongDetailPage = lazyPlaceholder('Song detail')
-const SongEditPage = lazyPlaceholder('Edit song')
+const SongListPage = lazy(() => import('@/features/songs/SongList').then((m) => ({ default: m.SongList })))
+const SongFormPage = lazy(() => import('@/features/songs/SongForm').then((m) => ({ default: m.SongForm })))
+const SongDetailPage = lazy(() =>
+  import('@/features/songs/SongDetailPage').then((m) => ({ default: m.SongDetailPage })),
+)
 const TeamListPage = lazyPlaceholder('Teams')
 const TeamDetailPage = lazyPlaceholder('Team detail')
 const ServiceListPage = lazyPlaceholder('Services')
@@ -62,9 +63,9 @@ export const router = createBrowserRouter([
         element: <ChurchGuard />,
         children: [
           { path: '/songs', element: <SongListPage /> },
-          { path: '/songs/new', element: <SongNewPage /> },
+          { path: '/songs/new', element: <SongFormPage /> },
           { path: '/songs/:id', element: <SongDetailPage /> },
-          { path: '/songs/:id/edit', element: <SongEditPage /> },
+          { path: '/songs/:id/edit', element: <SongFormPage /> },
           { path: '/teams', element: <TeamListPage /> },
           { path: '/teams/:id', element: <TeamDetailPage /> },
           { path: '/services', element: <ServiceListPage /> },
