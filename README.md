@@ -1,8 +1,8 @@
-# SelahPlan
+# Planly
 
 Plataforma para organizar la planificación musical de una iglesia desde una sola base de datos: canciones, letras, acordes, versiones, equipos, servicios y setlists.
 
-SelahPlan busca reemplazar la duplicación manual entre equipos y ofrecer una experiencia cómoda tanto para quienes administran la música como para quienes consultan letras y listas desde un teléfono.
+Planly busca reemplazar la duplicación manual entre equipos y ofrecer una experiencia cómoda tanto para quienes administran la música como para quienes consultan letras y listas desde un teléfono.
 
 ## Objetivo
 
