@@ -1,0 +1,90 @@
+import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AppLayout } from '@/app/layouts/AppLayout'
+import { AuthLayout } from '@/app/layouts/AuthLayout'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { AuthGuard } from '@/features/auth/AuthGuard'
+import { ChurchGuard } from '@/features/auth/ChurchGuard'
+
+const LoginForm = lazy(() => import('@/features/auth/LoginForm').then((m) => ({ default: m.LoginForm })))
+const SignupForm = lazy(() => import('@/features/auth/SignupForm').then((m) => ({ default: m.SignupForm })))
+const DashboardPage = lazy(() =>
+  import('@/features/auth/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+)
+
+// Lazy placeholder for feature pages built in later PRs. The lazy() seam stays
+// in place so swapping in the real page is a one-line change.
+function lazyPlaceholder(title: string) {
+  return lazy(() =>
+    Promise.resolve({
+      default: function PlaceholderPage() {
+        return (
+          <div className="p-6">
+            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+            <p className="mt-2 text-sm text-gray-500">This section is under construction.</p>
+          </div>
+        )
+      },
+    }),
+  )
+}
+
+const SongListPage = lazyPlaceholder('Songs')
+const SongNewPage = lazyPlaceholder('New song')
+const SongDetailPage = lazyPlaceholder('Song detail')
+const SongEditPage = lazyPlaceholder('Edit song')
+const TeamListPage = lazyPlaceholder('Teams')
+const TeamDetailPage = lazyPlaceholder('Team detail')
+const ServiceListPage = lazyPlaceholder('Services')
+const ServiceNewPage = lazyPlaceholder('New service')
+const ServiceDetailPage = lazyPlaceholder('Service detail')
+const SetlistPage = lazyPlaceholder('Setlist')
+const ProfilePage = lazyPlaceholder('Profile')
+const PublicSetlistPage = lazyPlaceholder('Public setlist')
+
+export const router = createBrowserRouter([
+  {
+    element: <AuthLayout />,
+    children: [
+      { path: '/sign-in', element: <LoginForm /> },
+      { path: '/sign-up', element: <SignupForm /> },
+    ],
+  },
+  {
+    element: (
+      <AuthGuard>
+        <AppLayout />
+      </AuthGuard>
+    ),
+    children: [
+      { path: '/dashboard', element: <DashboardPage /> },
+      {
+        element: <ChurchGuard />,
+        children: [
+          { path: '/songs', element: <SongListPage /> },
+          { path: '/songs/new', element: <SongNewPage /> },
+          { path: '/songs/:id', element: <SongDetailPage /> },
+          { path: '/songs/:id/edit', element: <SongEditPage /> },
+          { path: '/teams', element: <TeamListPage /> },
+          { path: '/teams/:id', element: <TeamDetailPage /> },
+          { path: '/services', element: <ServiceListPage /> },
+          { path: '/services/new', element: <ServiceNewPage /> },
+          { path: '/services/:id', element: <ServiceDetailPage /> },
+          { path: '/setlists/:id', element: <SetlistPage /> },
+          { path: '/profile', element: <ProfilePage /> },
+        ],
+      },
+    ],
+  },
+  {
+    // Public view — no auth check by design. PublicLayout arrives in Task 34 (PR #5).
+    path: '/s/:serviceId',
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <PublicSetlistPage />
+      </Suspense>
+    ),
+  },
+  { path: '/', element: <Navigate to="/dashboard" replace /> },
+  { path: '*', element: <Navigate to="/dashboard" replace /> },
+])

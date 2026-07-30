@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Stack: React 19 + Vite 8 + TypeScript 6 (noEmit, bundler resolution), Tailwind CSS 4 (via @tailwindcss/vite).
+  Data: Supabase (Postgres + Auth + RLS), @supabase/supabase-js v2, local CLI linked.
+  Client state: TanStack Query v5, React Router v7, Zod v4.
+  Architecture: feature-based under src/features (auth, people, services, setlists, songs, teams); src/lib for clients (lib/supabase.ts); src/services + src/types reserved.
+  Testing: no test runner installed yet — strict TDD disabled until one is added.
+  Quality: oxlint (react, typescript, oxc plugins) + tsc -b; no formatter configured.
+  Product: Planly (SelahPlan) — church service planning: churches, memberships, services, setlists, songs, teams, people.
+
+strict_tdd: false
+
+testing:
+  runner: none
+  unit: false
+  integration: false
+  e2e: false
+  coverage: false
+  linter: "oxlint"
+  type_checker: "tsc -b"
+  formatter: none
+  commands:
+    lint: "npm run lint"
+    build: "npm run build"
+    dev: "npm run dev"
+    db_start: "npm run db:start"
+    db_reset: "npm run db:reset"
+    db_types: "npm run db:types"
+
+rules:
+  proposal:
+    - Include rollback plan for risky schema or RLS changes.
+    - Reference README product spec for intent and scope boundaries.
+  specs:
+    - Use Given/When/Then for scenarios.
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
+    - Respect existing feature boundaries: auth, people, services, setlists, songs, teams.
+  design:
+    - Document architecture decisions with rationale.
+    - Keep React Router data loaders + TanStack Query patterns explicit; note Supabase client placement in src/lib/supabase.ts.
+    - Include sequence sketches for auth + RLS-gated data flows.
+  tasks:
+    - Group by phase, use hierarchical numbering.
+    - Keep tasks completable in one session; keep Supabase migration edits in supabase/migrations.
+  apply:
+    guidelines:
+      - Follow existing feature-based structure; colocate hooks/types within a feature.
+      - Validate data with Zod at client boundaries.
+      - Prefer Supabase RLS over client-side authorization checks.
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: "npm run build"
+    lint_command: "npm run lint"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas.
+    - Keep supabase/migrations append-only; archive deltas must not rewrite existing migrations.

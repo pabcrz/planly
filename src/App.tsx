@@ -1,13 +1,18 @@
+import { RouterProvider } from 'react-router-dom'
+import { AuthProvider } from '@/app/providers/AuthProvider'
+import { ChurchProvider } from '@/app/providers/ChurchProvider'
+import { QueryProvider } from '@/app/providers/QueryProvider'
+import { router } from '@/app/router'
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="bg-white border-b px-6 py-4">
-        <h1 className="text-xl font-semibold">SelahPlan</h1>
-      </header>
-      <main className="max-w-4xl mx-auto p-6">
-        <p>Plataforma de planificación musical.</p>
-      </main>
-    </div>
+    <QueryProvider>
+      <AuthProvider>
+        <ChurchProvider>
+          <RouterProvider router={router} />
+        </ChurchProvider>
+      </AuthProvider>
+    </QueryProvider>
   )
 }
 
