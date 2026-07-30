@@ -759,12 +759,12 @@ Zod validation on all mutation inputs.
 - `src/services/serviceService.ts` — service/setlist/participant CRUD
 
 #### Validation
-- [ ] `createService` creates both services + setlists rows
-- [ ] `addSetlistItem` inserts with correct sort_order
-- [ ] `reorderSetlistItem` renumbers siblings; no duplicate sort_order
-- [ ] `removeSetlistItem` renumbers remaining items
-- [ ] `freezeSetlist` sets frozen_at; subsequent `updateSetlistItem` rejects (RLS)
-- [ ] `changeStatus('planned', 'active')` works; `changeStatus('completed', 'planned')` throws
+- [x] `createService` creates both services + setlists rows
+- [x] `addSetlistItem` inserts with correct sort_order
+- [x] `reorderSetlistItem` renumbers siblings; no duplicate sort_order
+- [x] `removeSetlistItem` renumbers remaining items
+- [x] `freezeSetlist` sets frozen_at; subsequent `updateSetlistItem` rejects (RLS)
+- [x] `changeStatus('planned', 'active')` works; `changeStatus('completed', 'planned')` throws
 
 #### Spec coverage
 - services/service-create, services/service-listing-and-filter, services/service-edit-and-status-transition, services/service-delete, services/setlist-items, services/participant-roster, services/setlist-freeze
@@ -796,10 +796,10 @@ Create `src/features/services/ServiceDetailPage.tsx` — service info, setlist e
 - `src/features/services/ServiceDetailPage.tsx` — service detail page
 
 #### Validation
-- [ ] Create service with team T → setlist auto-created
-- [ ] Filter by date range and team shows only matching services
-- [ ] Status badge color matches status (planned/active/completed)
-- [ ] Worship director can transition planned→active→completed
+- [x] Create service with team T → setlist auto-created
+- [x] Filter by date range and team shows only matching services
+- [x] Status badge color matches status (planned/active/completed)
+- [x] Worship director can transition planned→active→completed
 
 #### Spec coverage
 - services/service-create, services/service-listing-and-filter, services/service-edit-and-status-transition
@@ -824,11 +824,11 @@ Role-based: worship director+ sees all controls; members see read-only setlist.
 - `src/features/services/SetlistItem.tsx` — setlist row
 
 #### Validation
-- [ ] Add song from repertoire → appears at end of setlist
-- [ ] Reorder: move song from position 3 to 1 → items renumbered
-- [ ] Remove song → items renumbered contiguously
-- [ ] Freeze button sets frozen status; edit controls disappear
-- [ ] Member sees read-only setlist; no add/remove/reorder controls
+- [x] Add song from repertoire → appears at end of setlist
+- [x] Reorder: move song from position 3 to 1 → items renumbered
+- [x] Remove song → items renumbered contiguously
+- [x] Freeze button sets frozen status; edit controls disappear
+- [x] Member sees read-only setlist; no add/remove/reorder controls
 
 #### Spec coverage
 - services/setlist-items, services/setlist-freeze, auth/role-based-ui-access
@@ -851,10 +851,10 @@ Create `src/features/services/ParticipantForm.tsx` — modal/drawer: select from
 - `src/features/services/ParticipantForm.tsx` — add/edit participant with roles
 
 #### Validation
-- [ ] Add participant M with roles ["Vocalista", "Líder"] → shows in roster
-- [ ] Remove participant → removed from roster and roles deleted
-- [ ] Add role to existing participant → new role appears
-- [ ] Cannot add same membership twice (UNIQUE service_id+membership_id constraint)
+- [x] Add participant M with roles ["Vocalista", "Líder"] → shows in roster
+- [x] Remove participant → removed from roster and roles deleted
+- [x] Add role to existing participant → new role appears
+- [x] Cannot add same membership twice (UNIQUE service_id+membership_id constraint)
 
 #### Spec coverage
 - services/participant-roster

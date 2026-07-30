@@ -41,10 +41,18 @@ const TeamDetailPage = lazy(() =>
 const ProfilePage = lazy(() =>
   import('@/features/teams/ProfileForm').then((m) => ({ default: m.ProfileForm })),
 )
-const ServiceListPage = lazyPlaceholder('Services')
-const ServiceNewPage = lazyPlaceholder('New service')
-const ServiceDetailPage = lazyPlaceholder('Service detail')
-const SetlistPage = lazyPlaceholder('Setlist')
+const ServiceListPage = lazy(() =>
+  import('@/features/services/ServiceList').then((m) => ({ default: m.ServiceList })),
+)
+const ServiceNewPage = lazy(() =>
+  import('@/features/services/ServiceForm').then((m) => ({ default: m.NewServicePage })),
+)
+const ServiceDetailPage = lazy(() =>
+  import('@/features/services/ServiceDetailPage').then((m) => ({ default: m.ServiceDetailPage })),
+)
+const SetlistPage = lazy(() =>
+  import('@/features/services/SetlistPage').then((m) => ({ default: m.SetlistPage })),
+)
 const PublicSetlistPage = lazyPlaceholder('Public setlist')
 
 export const router = createBrowserRouter([
