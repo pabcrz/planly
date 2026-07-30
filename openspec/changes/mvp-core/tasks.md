@@ -883,9 +883,9 @@ All queries use anon role; no auth required. Return typed results.
 - `src/services/publicService.ts` — anon setlist + lyrics queries
 
 #### Validation
-- [ ] `getPublicSetlist(serviceId)` returns setlist items without auth
-- [ ] `getPublicSongLyrics(versionId)` works for canonical songs
-- [ ] Non-published songs return empty/error (RLS enforcement)
+- [x] `getPublicSetlist(serviceId)` returns setlist items without auth
+- [x] `getPublicSongLyrics(versionId)` works for canonical songs
+- [x] Non-published songs return empty/error (RLS enforcement)
 
 #### Spec coverage
 - public-views/anonymous-setlist-access, public-views/song-lyrics-view
@@ -905,9 +905,9 @@ Create `src/app/layouts/PublicLayout.tsx` — minimal shell for public views. No
 - `src/app/layouts/PublicLayout.tsx` — minimal public view shell
 
 #### Validation
-- [ ] `/s/:any-uuid` renders PublicLayout without sign-in redirect
-- [ ] No Supabase auth session created on visit
-- [ ] No navigation chrome present
+- [x] `/s/:any-uuid` renders PublicLayout without sign-in redirect
+- [x] No Supabase auth session created on visit
+- [x] No navigation chrome present
 
 #### Spec coverage
 - public-views/no-auth-side-effects
@@ -927,11 +927,11 @@ Create `src/features/public-views/PublicSetlist.tsx` — read-only setlist view.
 - `src/features/public-views/PublicSetlist.tsx` — public setlist page
 
 #### Validation
-- [ ] Open `/s/<valid-service-id>` → renders setlist without login
-- [ ] Songs listed in order with title and key
-- [ ] Tap song → shows lyrics (inline or linked)
-- [ ] Copy link button works; shows confirmation
-- [ ] Tap targets ≥ 44px on mobile (375px viewport)
+- [x] Open `/s/<valid-service-id>` → renders setlist without login
+- [x] Songs listed in order with title and key
+- [x] Tap song → shows lyrics (inline or linked)
+- [x] Copy link button works; shows confirmation
+- [x] Tap targets ≥ 44px on mobile (375px viewport)
 
 #### Spec coverage
 - public-views/anonymous-setlist-access, public-views/copy-shareable-link, public-views/mobile-optimized-layout
@@ -959,12 +959,12 @@ Route: `/s/:serviceId/song/:versionId` or inline expand within PublicSetlist.
 - `src/features/public-views/ShareButton.tsx` — copy-link with toast
 
 #### Validation
-- [ ] Lyrics+chords mode: chords displayed above lyrics
-- [ ] Toggle to lyrics-only: chords stripped
-- [ ] Transpose +2: all chords shift up; reload resets to original key
-- [ ] Toggle preference persists across song navigation via localStorage
-- [ ] Mobile: font large enough to read, chords+lyrics aligned, no horizontal overflow
-- [ ] No DB writes on transpose/toggle
+- [x] Lyrics+chords mode: chords displayed above lyrics
+- [x] Toggle to lyrics-only: chords stripped
+- [x] Transpose +2: all chords shift up; reload resets to original key
+- [x] Toggle preference persists across song navigation via localStorage
+- [x] Mobile: font large enough to read, chords+lyrics aligned, no horizontal overflow
+- [x] No DB writes on transpose/toggle
 
 #### Spec coverage
 - public-views/song-lyrics-view, public-views/in-view-transposition, public-views/view-toggle, public-views/mobile-optimized-layout, public-views/no-auth-side-effects

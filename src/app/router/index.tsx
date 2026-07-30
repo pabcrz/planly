@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/app/layouts/AppLayout'
 import { AuthLayout } from '@/app/layouts/AuthLayout'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { PublicLayout } from '@/app/layouts/PublicLayout'
 import { AuthGuard } from '@/features/auth/AuthGuard'
 import { ChurchGuard } from '@/features/auth/ChurchGuard'
 
@@ -11,23 +11,6 @@ const SignupForm = lazy(() => import('@/features/auth/SignupForm').then((m) => (
 const DashboardPage = lazy(() =>
   import('@/features/auth/DashboardPage').then((m) => ({ default: m.DashboardPage })),
 )
-
-// Lazy placeholder for feature pages built in later PRs. The lazy() seam stays
-// in place so swapping in the real page is a one-line change.
-function lazyPlaceholder(title: string) {
-  return lazy(() =>
-    Promise.resolve({
-      default: function PlaceholderPage() {
-        return (
-          <div className="p-6">
-            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-            <p className="mt-2 text-sm text-gray-500">This section is under construction.</p>
-          </div>
-        )
-      },
-    }),
-  )
-}
 
 const SongListPage = lazy(() => import('@/features/songs/SongList').then((m) => ({ default: m.SongList })))
 const SongFormPage = lazy(() => import('@/features/songs/SongForm').then((m) => ({ default: m.SongForm })))
@@ -53,7 +36,12 @@ const ServiceDetailPage = lazy(() =>
 const SetlistPage = lazy(() =>
   import('@/features/services/SetlistPage').then((m) => ({ default: m.SetlistPage })),
 )
-const PublicSetlistPage = lazyPlaceholder('Public setlist')
+const PublicSetlistPage = lazy(() =>
+  import('@/features/public-views/PublicSetlist').then((m) => ({ default: m.PublicSetlist })),
+)
+const PublicLyricsPage = lazy(() =>
+  import('@/features/public-views/PublicLyrics').then((m) => ({ default: m.PublicLyrics })),
+)
 
 export const router = createBrowserRouter([
   {
@@ -90,13 +78,13 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Public view — no auth check by design. PublicLayout arrives in Task 34 (PR #5).
-    path: '/s/:serviceId',
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        <PublicSetlistPage />
-      </Suspense>
-    ),
+    // Public views — no auth check by design (spec: public-views). PublicLayout
+    // provides the minimal shell, its own QueryClient, and the Suspense boundary.
+    element: <PublicLayout />,
+    children: [
+      { path: '/s/:serviceId', element: <PublicSetlistPage /> },
+      { path: '/s/:serviceId/song/:versionId', element: <PublicLyricsPage /> },
+    ],
   },
   { path: '/', element: <Navigate to="/dashboard" replace /> },
   { path: '*', element: <Navigate to="/dashboard" replace /> },
