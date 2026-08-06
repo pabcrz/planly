@@ -5,6 +5,7 @@ import {
   ArrowLeft, Calendar, Clock, Users, UserCheck, FileText, 
   Play, CheckCircle, Edit2, Trash2, Music, Shield 
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import {
   changeStatus,
@@ -119,25 +120,27 @@ export function ServiceDetailPage() {
           <div className="flex items-center gap-2.5 flex-wrap">
             <ServiceStatusBadge status={service.status} />
             {canManage && next ? (
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="sm"
                 onClick={() => statusMutation.mutate(next.status)}
                 disabled={statusMutation.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 shadow-xs transition-all"
               >
                 <next.icon className="h-4 w-4" />
                 {next.label}
-              </button>
+              </Button>
             ) : null}
             {canDelete ? (
-              <button
+              <Button
                 type="button"
+                variant="danger"
+                size="sm"
                 onClick={() => setDeleteOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50/50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100/80 transition-all"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Eliminar servicio
-              </button>
+              </Button>
             ) : null}
           </div>
         </div>
@@ -165,14 +168,15 @@ export function ServiceDetailPage() {
                   </h1>
                 </div>
                 {canManage ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setEditOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs"
                   >
                     <Edit2 className="h-3.5 w-3.5 text-gray-500" />
                     Editar
-                  </button>
+                  </Button>
                 ) : null}
               </div>
 
@@ -252,13 +256,14 @@ export function ServiceDetailPage() {
                   <span className="text-xs text-gray-500 font-medium">miembros en el equipo</span>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                className="mt-4 w-full"
                 onClick={() => setActiveTab('participants')}
-                className="mt-4 w-full rounded-xl bg-gray-50 hover:bg-gray-100 py-2.5 text-center text-xs font-bold text-gray-700 transition-colors border border-gray-200/80"
               >
                 Ver lista completa y roles
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -266,25 +271,27 @@ export function ServiceDetailPage() {
         {/* Tabbed Navigation Bar (No Emojis, Clean Lucide Icons) */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="flex gap-8 -mb-px">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setActiveTab('setlist')}
-              className={`py-3.5 px-2 border-b-2 font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`rounded-none border-b-2 py-3.5 px-2 transition-all flex items-center gap-2 ${
                 activeTab === 'setlist'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-indigo-600 text-indigo-600 font-bold'
+                  : 'border-transparent text-gray-500 font-medium'
               }`}
             >
               <Music className="h-4 w-4" />
               <span>Orden del servicio (Setlist)</span>
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setActiveTab('participants')}
-              className={`py-3.5 px-2 border-b-2 font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`rounded-none border-b-2 py-3.5 px-2 transition-all flex items-center gap-2 ${
                 activeTab === 'participants'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-indigo-600 text-indigo-600 font-bold'
+                  : 'border-transparent text-gray-500 font-medium'
               }`}
             >
               <Users className="h-4 w-4" />
@@ -292,7 +299,7 @@ export function ServiceDetailPage() {
               <span className="ml-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-700 font-semibold">
                 {participants ? participants.length : 0}
               </span>
-            </button>
+            </Button>
           </nav>
         </div>
 

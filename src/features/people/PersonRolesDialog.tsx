@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import { updatePersonRolesAndProfile } from '@/services/peopleService'
@@ -26,7 +28,6 @@ interface PersonRolesDialogProps {
 }
 
 export function PersonRolesDialog({ open, member, availableRoles, onClose }: PersonRolesDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const { activeChurchId } = useChurch()
   const queryClient = useQueryClient()
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
@@ -35,13 +36,6 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
   const [showRoleConfig, setShowRoleConfig] = useState(false)
 
   const catalog = availableRoles.length > 0 ? availableRoles : DEFAULT_ROLES
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
 
   useEffect(() => {
     if (member) {
@@ -85,11 +79,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="m-auto w-full max-w-md rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
-    >
+    <Modal open={open} onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 max-h-[85vh] overflow-y-auto">
         <div>
           <h2 className="text-lg font-bold text-gray-900">
@@ -114,13 +104,15 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="block text-xs font-semibold text-gray-700">Roles disponibles en la Iglesia</span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setShowRoleConfig(true)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+              className="gap-1 text-indigo-600 hover:text-indigo-800"
             >
               <Settings className="h-3.5 w-3.5" /> Editar catálogo
-            </button>
+            </Button>
           </div>
           <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2.5 bg-gray-50/40">
             {catalog.map((role) => {
@@ -150,23 +142,23 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
         <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 mt-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="primary"
             disabled={mutation.isPending}
-            className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
             {mutation.isPending ? 'Guardando…' : 'Guardar asignaciones'}
-          </button>
+          </Button>
         </div>
       </form>
       <RoleConfigDialog open={showRoleConfig} onClose={() => setShowRoleConfig(false)} />
-    </dialog>
+    </Modal>
   )
 }

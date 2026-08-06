@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { toastPromise } from '@/lib/toast'
 import type { Church } from '@/types/models'
 import { Users, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 export function ChurchListPage() {
   const [page, setPage] = useState(1)
@@ -68,15 +69,16 @@ export function ChurchListPage() {
                     <Users className="h-3.5 w-3.5 text-gray-500" />
                     <span>{church.member_count} miembros</span>
                   </span>
-                  <button
+                  <Button
                     type="button"
                     aria-label={`Eliminar ${church.name}`}
                     onClick={() => setDeletingChurch(church)}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors shadow-2xs"
+                    variant="danger"
+                    size="sm"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     <span>Eliminar Iglesia</span>
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -84,23 +86,23 @@ export function ChurchListPage() {
         )}
 
         <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
-          <button
+          <Button
             type="button"
             disabled={page === 1}
             onClick={() => setPage((current) => current - 1)}
-            className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400 transition-colors"
+            variant="secondary"
           >
             ← Página Anterior
-          </button>
+          </Button>
           <span className="text-xs font-semibold text-gray-500">Página {page}</span>
-          <button
+          <Button
             type="button"
             disabled={!nextPage}
             onClick={() => nextPage && setPage(nextPage)}
-            className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400 transition-colors"
+            variant="secondary"
           >
             Siguiente Página →
-          </button>
+          </Button>
         </div>
       </section>
 

@@ -6,6 +6,7 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import { createSong, getSong, updateSong } from '@/services/songService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Button } from '@/components/ui/Button'
 import { MediaReferenceCard } from './MediaReferenceCard'
 
 type FieldErrors = Partial<Record<'title' | 'author' | 'tempo' | 'tags' | 'reference_urls', string>>
@@ -214,13 +215,14 @@ export function SongForm() {
                 }}
                 className={inputClass}
               />
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={addUrl}
-                className="shrink-0 rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+                className="shrink-0"
               >
                 Añadir
-              </button>
+              </Button>
             </div>
             {fieldErrors.reference_urls ? (
               <p className={errorClass}>{fieldErrors.reference_urls}</p>
@@ -248,13 +250,13 @@ export function SongForm() {
         {formError ? <p className="mt-4 text-sm text-red-600">{formError}</p> : null}
 
         <div className="mt-6 flex items-center gap-3">
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={mutation.isPending}
-            className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
             {mutation.isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear canción'}
-          </button>
+          </Button>
           <Link
             to={isCanonical ? (isEdit ? `/admin/songs/${id}` : '/admin/songs') : isEdit ? `/songs/${id}` : '/songs'}
             className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"

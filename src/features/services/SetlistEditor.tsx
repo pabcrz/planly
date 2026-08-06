@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Lock, ListMusic } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import {
   addSetlistItem,
@@ -98,24 +100,26 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
 
         <div className="flex items-center gap-2.5">
           {canEdit ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               onClick={() => setPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
             >
               <Plus className="h-4 w-4" />
               Agregar canción
-            </button>
+            </Button>
           ) : null}
           {canEdit ? (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => setFreezeOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/50 px-3.5 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <Lock className="h-3.5 w-3.5 text-gray-500" />
               Congelar setlist
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -177,7 +181,6 @@ interface SongPickerDialogProps {
 }
 
 function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const { activeChurchId } = useChurch()
   const [search, setSearch] = useState('')
   const [selectedSong, setSelectedSong] = useState<Song | null>(null)
@@ -197,13 +200,6 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
     queryFn: () => getSong(selectedSong!.id),
     enabled: open && !!selectedSong,
   })
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -250,10 +246,9 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="m-auto w-full max-w-xl rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
+    <Modal
+      open={open}
+      onClose={onClose}
     >
       <div className="flex max-h-[85vh] flex-col gap-4 overflow-y-auto p-6">
         <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
@@ -277,30 +272,33 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
             <ul className="flex flex-col gap-1.5 max-h-[50vh] overflow-y-auto pr-1">
               {matches.map((song) => (
                 <li key={song.id}>
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    className="flex min-h-12 w-full items-center justify-between gap-3 text-left shadow-2xs"
                     onClick={() => setSelectedSong(song)}
-                    className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3.5 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors shadow-2xs"
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-gray-900">{song.title}</span>
                       {song.author ? <span className="block truncate text-xs text-gray-500 mt-0.5">{song.author}</span> : null}
                     </span>
                     <span className="text-indigo-600 text-base font-bold">→</span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           </>
         ) : !selectedVersion ? (
           <>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
+              className="self-start"
               onClick={() => setSelectedSong(null)}
-              className="self-start text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center min-h-9"
             >
               ← Volver a la búsqueda
-            </button>
+            </Button>
             <p className="text-sm font-bold text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{selectedSong.title} — Elige una versión</p>
             {!songDetail ? <LoadingSpinner /> : null}
             {songDetail && songDetail.versions.length === 0 ? (
@@ -309,16 +307,17 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
             <ul className="flex flex-col gap-1.5">
               {songDetail?.versions.map((version) => (
                 <li key={version.id}>
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    className="flex min-h-12 w-full items-center justify-between gap-2 text-left shadow-2xs"
                     onClick={() => setSelectedVersion(version)}
-                    className="flex min-h-12 w-full items-center justify-between gap-2 rounded-lg border border-gray-100 px-3.5 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors shadow-2xs"
                   >
                     <span className="text-sm font-semibold text-gray-900">{version.version_name}</span>
                     <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-800">
                       {version.key}
                     </span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -332,13 +331,15 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
               addMutation.mutate()
             }}
           >
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
+              className="self-start"
               onClick={() => setSelectedVersion(null)}
-              className="self-start text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center min-h-9"
             >
               ← Volver a las versiones
-            </button>
+            </Button>
             <div className="rounded-lg bg-indigo-50/60 p-3 border border-indigo-100">
               <p className="text-sm font-bold text-indigo-950">
                 {selectedSong.title}
@@ -367,36 +368,36 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
             </div>
             {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
             <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onClose}
-                className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="primary"
                 disabled={addMutation.isPending || !key}
-                className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
               >
                 {addMutation.isPending ? 'Agregando…' : 'Agregar al setlist'}
-              </button>
+              </Button>
             </div>
           </form>
         )}
 
         {selectedSong ? null : (
           <div className="flex justify-end">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
-              className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               Cancelar
-            </button>
+            </Button>
           </div>
         )}
       </div>
-    </dialog>
+    </Modal>
   )
 }

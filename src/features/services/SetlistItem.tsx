@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2, Music } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import type { SetlistItemWithSong } from '@/services/serviceService'
 
 interface SetlistItemRowProps {
@@ -12,9 +13,6 @@ interface SetlistItemRowProps {
   onUpdateKey: (itemId: string, key: string) => void
   onRemove: (itemId: string) => void
 }
-
-const iconButtonClass =
-  'inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-20 disabled:hover:bg-transparent transition-colors'
 
 export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdateKey, onRemove }: SetlistItemRowProps) {
   const [keyDraft, setKeyDraft] = useState(item.key)
@@ -79,32 +77,36 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
 
       {canEdit ? (
         <div className="flex shrink-0 items-center gap-0.5 border-l border-gray-100 pl-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label="Mover arriba"
             disabled={isFirst}
             onClick={() => onMove(item.id, item.sort_order - 1)}
-            className={iconButtonClass}
           >
             <ChevronUp className="h-4 w-4" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label="Mover abajo"
             disabled={isLast}
             onClick={() => onMove(item.id, item.sort_order + 1)}
-            className={iconButtonClass}
           >
             <ChevronDown className="h-4 w-4" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="danger"
+            size="icon"
+            className="ml-1"
             aria-label={`Eliminar ${item.song.title}`}
             onClick={() => onRemove(item.id)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors ml-1"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       ) : null}
     </li>

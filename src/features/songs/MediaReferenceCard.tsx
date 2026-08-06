@@ -1,4 +1,5 @@
 import { Headphones, Music, Video, Disc, Link as LinkIcon, ExternalLink, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 interface MediaReferenceCardProps {
   url: string
@@ -91,15 +92,16 @@ export function MediaReferenceCard({ url, onDelete, readOnly = true }: MediaRefe
       </div>
 
       {!readOnly && onDelete ? (
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={onDelete}
-          className="inline-flex items-center gap-1 min-h-11 shrink-0 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 hover:border-red-200 transition-colors"
+          className="shrink-0 gap-1"
           title="Eliminar referencia"
         >
           <Trash2 className="h-3.5 w-3.5" />
           <span>Eliminar</span>
-        </button>
+        </Button>
       ) : null}
     </div>
   )

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toastSuccess } from '@/lib/toast'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
 
 type InviteState = 'missing' | 'expired' | 'used' | 'invalid' | 'ready'
 
@@ -72,7 +73,7 @@ export function InvitePage() {
       <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="min-h-11 rounded-md border border-gray-300 px-3 py-2" />
     </label>
     {fieldError ? <p className="text-sm text-red-600">{fieldError}</p> : null}
-    <button type="submit" disabled={submitting} className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{submitting ? (isRecovery ? 'Guardando…' : 'Activando…') : (isRecovery ? 'Restablecer contraseña' : 'Aceptar invitación')}</button>
+    <Button type="submit" disabled={submitting} variant="primary">{submitting ? (isRecovery ? 'Guardando…' : 'Activando…') : (isRecovery ? 'Restablecer contraseña' : 'Aceptar invitación')}</Button>
   </form>
 }
 

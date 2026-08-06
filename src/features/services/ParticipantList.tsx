@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, UserPlus, Plus, X, Trash2, Shield } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { removeParticipant, removeParticipantRole } from '@/services/serviceService'
 import type { ParticipantWithDetails } from '@/services/serviceService'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -51,14 +52,15 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
         </div>
 
         {canManage ? (
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="sm"
             onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
           >
             <UserPlus className="h-4 w-4" />
             Agregar participante
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -98,41 +100,46 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                           <Shield className="h-3 w-3 text-indigo-500" />
                           <span>{role}</span>
                           {canManage ? (
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 rounded-full"
                               aria-label={`Eliminar rol ${role}`}
                               onClick={() =>
                                 removeRoleMutation.mutate({ participantId: participant.id, role })
                               }
-                              className="inline-flex h-4 w-4 items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-200 transition-colors"
                             >
                               <X className="h-2.5 w-2.5" />
-                            </button>
+                            </Button>
                           ) : null}
                         </span>
                       ))}
                       {canManage ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="h-auto py-1 px-2.5 border-dashed"
                           onClick={() => setRoleTarget(participant)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
                         >
                           <Plus className="h-3 w-3" />
                           <span>Agregar rol</span>
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   </div>
 
                   {canManage ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="danger"
+                      size="icon"
                       aria-label={`Eliminar a ${displayName}`}
                       onClick={() => removeMutation.mutate(participant.id)}
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </Button>
                   ) : null}
                 </li>
               )
