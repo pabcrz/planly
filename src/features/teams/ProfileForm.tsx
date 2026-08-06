@@ -231,26 +231,26 @@ export function ProfileForm() {
 
           {/* Tab 1: Roles */}
           {activeTab === 'roles' ? (
-            <div className="mt-6 rounded-2xl bg-gray-900 text-white p-6 shadow-md border border-gray-800">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-5">
+            <div className="mt-6 rounded-2xl bg-white text-gray-900 p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
                 <div>
-                  <h3 className="text-lg font-extrabold text-white tracking-wide">
+                  <h3 className="text-lg font-extrabold text-gray-900 tracking-wide">
                     {activeMembership?.church.name ?? 'Iglesia Activa'}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Tus roles ministeriales, instrumentos y funciones asignadas</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Tus roles ministeriales, instrumentos y funciones asignadas</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingRoles(!isEditingRoles)}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 px-3 py-1.5 text-xs font-semibold text-indigo-300 border border-gray-700 transition-colors"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 transition-colors"
                 >
                   {isEditingRoles ? 'Cerrar edición' : '✎ Editar Roles'}
                 </button>
               </div>
 
               {isEditingRoles ? (
-                <div className="space-y-4 bg-gray-800/60 p-4 rounded-xl border border-gray-700">
-                  <p className="text-xs text-gray-300 font-semibold">
+                <div className="space-y-4 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
+                  <p className="text-xs text-gray-700 font-semibold">
                     Selecciona de la lista oficial de tu iglesia los roles ministeriales o instrumentos en los que participas:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
@@ -261,15 +261,15 @@ export function ProfileForm() {
                           key={role}
                           className={`flex items-center gap-3 p-3 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
                             isChecked
-                              ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                              : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                              ? 'bg-indigo-50 border-indigo-300 text-indigo-950 font-bold shadow-2xs'
+                              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleRole(role)}
-                            className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
+                            className="h-4 w-4 rounded border-gray-300 bg-white text-indigo-600 focus:ring-indigo-500"
                           />
                           <span className="truncate">{role}</span>
                         </label>
@@ -280,7 +280,7 @@ export function ProfileForm() {
                     <button
                       type="button"
                       onClick={() => mutation.mutate()}
-                      className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
+                      className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
                     >
                       Guardar roles seleccionados
                     </button>
@@ -288,11 +288,11 @@ export function ProfileForm() {
                 </div>
               ) : selectedRoles.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-sm text-gray-400 font-medium">Aún no tienes roles o instrumentos asignados en esta iglesia.</p>
+                  <p className="text-sm text-gray-500 font-medium">Aún no tienes roles o instrumentos asignados en esta iglesia.</p>
                   <button
                     type="button"
                     onClick={() => setIsEditingRoles(true)}
-                    className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
+                    className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
                   >
                     + Agregar mis primeros roles
                   </button>
@@ -302,10 +302,10 @@ export function ProfileForm() {
                   {selectedRoles.map((role) => (
                     <div
                       key={role}
-                      className="rounded-xl bg-gray-800/80 px-4 py-3.5 text-sm font-bold text-gray-100 border border-gray-700/60 flex items-center justify-between hover:bg-gray-800 transition-colors shadow-2xs"
+                      className="rounded-xl bg-gray-50/90 px-4 py-3.5 text-sm font-bold text-gray-800 border border-gray-200/80 flex items-center justify-between hover:bg-white hover:shadow-2xs transition-all"
                     >
                       <span>{role}</span>
-                      <span className="w-2 h-2 rounded-full bg-indigo-400/80" />
+                      <span className="w-2 h-2 rounded-full bg-indigo-600" />
                     </div>
                   ))}
                 </div>
