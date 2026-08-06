@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import { updatePersonRolesAndProfile } from '@/services/peopleService'
+import { RoleConfigDialog } from './RoleConfigDialog'
+import { Settings } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -30,6 +32,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [showRoleConfig, setShowRoleConfig] = useState(false)
 
   const catalog = availableRoles.length > 0 ? availableRoles : DEFAULT_ROLES
 
@@ -109,7 +112,16 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
         </div>
 
         <div>
-          <span className="block text-xs font-semibold text-gray-700 mb-2">Roles disponibles en la Iglesia</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="block text-xs font-semibold text-gray-700">Roles disponibles en la Iglesia</span>
+            <button
+              type="button"
+              onClick={() => setShowRoleConfig(true)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+              <Settings className="h-3.5 w-3.5" /> Editar catálogo
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2.5 bg-gray-50/40">
             {catalog.map((role) => {
               const isSelected = selectedRoles.includes(role)
@@ -154,6 +166,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
           </button>
         </div>
       </form>
+      <RoleConfigDialog open={showRoleConfig} onClose={() => setShowRoleConfig(false)} />
     </dialog>
   )
 }

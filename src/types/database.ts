@@ -225,7 +225,10 @@ export type Database = {
         Row: {
           church_id: string
           created_at: string
+          director: string | null
+          service_type: string | null
           id: string
+          is_published: boolean
           notes: string | null
           service_date: string
           start_time: string
@@ -236,7 +239,10 @@ export type Database = {
         Insert: {
           church_id: string
           created_at?: string
+          director?: string | null
+          service_type?: string | null
           id?: string
+          is_published?: boolean
           notes?: string | null
           service_date: string
           start_time: string
@@ -247,7 +253,10 @@ export type Database = {
         Update: {
           church_id?: string
           created_at?: string
+          director?: string | null
+          service_type?: string | null
           id?: string
+          is_published?: boolean
           notes?: string | null
           service_date?: string
           start_time?: string
@@ -565,6 +574,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_current_user: { Args: never; Returns: undefined }
       create_church: {
         Args: {
           church_name: string
@@ -596,6 +606,8 @@ export type Database = {
       }
       is_church_member: { Args: { church_uuid: string }; Returns: boolean }
       is_curator: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
+      is_user_active: { Args: { target_user_id?: string }; Returns: boolean }
     }
     Enums: {
       church_role: "church_admin" | "worship_director" | "member"

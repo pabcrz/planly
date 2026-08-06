@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signIn } from '@/services/authService'
+import { getErrorMessage } from '@/lib/toast'
 
 const inputClass =
   'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
@@ -24,7 +25,7 @@ export function LoginForm() {
       const target = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard'
       navigate(target, { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign in failed')
+      setError(getErrorMessage(err))
     } finally {
       setIsSubmitting(false)
     }
@@ -32,7 +33,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-lg font-semibold text-gray-900">Sign in</h1>
+      <h1 className="text-lg font-semibold text-gray-900">Iniciar sesión</h1>
 
       {error ? (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -41,7 +42,7 @@ export function LoginForm() {
       ) : null}
 
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
-        Email
+        Correo electrónico
         <input
           type="email"
           autoComplete="email"
@@ -53,7 +54,7 @@ export function LoginForm() {
       </label>
 
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
-        Password
+        Contraseña
         <input
           type="password"
           autoComplete="current-password"
@@ -69,14 +70,11 @@ export function LoginForm() {
         disabled={isSubmitting}
         className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
       >
-        {isSubmitting ? 'Signing in…' : 'Sign in'}
+        {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
       </button>
 
       <p className="text-center text-sm text-gray-500">
-        No account yet?{' '}
-        <Link to="/sign-up" className="font-medium text-indigo-600 hover:text-indigo-700">
-          Create one
-        </Link>
+        El acceso a Planly es solo por invitación. Solicita una invitación al administrador.
       </p>
     </form>
   )

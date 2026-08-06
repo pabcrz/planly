@@ -11,6 +11,7 @@ import { deleteMembership, getChurchSettings, getPeople, updateMembershipRole } 
 import type { ChurchRole } from '@/types/models'
 import { RoleConfigDialog } from './RoleConfigDialog'
 import { PersonRolesDialog } from './PersonRolesDialog'
+import { Settings, UserPlus, Trash2 } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -157,7 +158,8 @@ export function PeopleListPage() {
                 onClick={() => setShowRoleConfig(true)}
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
               >
-                <span>⚙️ Configurar Roles</span>
+                <Settings className="h-4 w-4 text-gray-600" />
+                <span>Configurar Roles</span>
               </button>
             ) : null}
             {isChurchAdmin ? (
@@ -165,7 +167,8 @@ export function PeopleListPage() {
                 to="/invite"
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
               >
-                <span>➕ Invitar Persona</span>
+                <UserPlus className="h-4 w-4" />
+                <span>Invitar Persona</span>
               </Link>
             ) : null}
           </div>
@@ -393,7 +396,7 @@ export function PeopleListPage() {
                           onClick={() => setDeletingMember(m)}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                         >
-                          🗑️
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       ) : null}
                     </div>

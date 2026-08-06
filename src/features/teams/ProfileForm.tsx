@@ -8,6 +8,8 @@ import { getServices } from '@/services/serviceService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { formatServiceDateOnly, formatServiceDay, formatServiceTime } from '@/features/services/serviceFormat'
+import { RoleConfigDialog } from '@/features/people/RoleConfigDialog'
+import { Shield, Check, X, Pencil, Settings } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -60,6 +62,7 @@ export function ProfileForm() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('roles')
   const [isEditingRoles, setIsEditingRoles] = useState(false)
+  const [showRoleConfig, setShowRoleConfig] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -171,8 +174,9 @@ export function ProfileForm() {
 
           <div className="mt-8 pt-6 border-t border-gray-100 w-full">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Nivel de Permiso</span>
-            <span className="mt-1.5 inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200/60">
-              🛡️ {roleLabel}
+            <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200/60">
+              <Shield className="h-3.5 w-3.5 text-indigo-600" />
+              <span>{roleLabel}</span>
             </span>
           </div>
 
@@ -185,7 +189,7 @@ export function ProfileForm() {
             >
               {mutation.isPending ? 'Guardando cambios…' : 'Guardar perfil'}
             </button>
-            {saved ? <p className="mt-2 text-center text-xs font-semibold text-emerald-600">✓ Perfil actualizado correctamente.</p> : null}
+            {saved ? <p className="mt-2 text-center text-xs font-semibold text-emerald-600 inline-flex items-center justify-center gap-1 w-full"><Check className="h-3.5 w-3.5" /> Perfil actualizado correctamente.</p> : null}
             {formError ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{formError}</p> : null}
           </div>
         </div>
@@ -231,26 +235,43 @@ export function ProfileForm() {
 
           {/* Tab 1: Roles */}
           {activeTab === 'roles' ? (
-            <div className="mt-6 rounded-2xl bg-gray-900 text-white p-6 shadow-md border border-gray-800">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-5">
+            <div className="mt-6 rounded-2xl bg-white text-gray-900 p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
                 <div>
-                  <h3 className="text-lg font-extrabold text-white tracking-wide">
+                  <h3 className="text-lg font-extrabold text-gray-900 tracking-wide">
                     {activeMembership?.church.name ?? 'Iglesia Activa'}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Tus roles ministeriales, instrumentos y funciones asignadas</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Tus roles ministeriales, instrumentos y funciones asignadas</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingRoles(!isEditingRoles)}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 px-3 py-1.5 text-xs font-semibold text-indigo-300 border border-gray-700 transition-colors"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 transition-colors"
                 >
-                  {isEditingRoles ? 'Cerrar edición' : '✎ Editar Roles'}
+                  {isEditingRoles ? (
+                    <span className="inline-flex items-center gap-1"><X className="h-3.5 w-3.5" /> Cerrar edición</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" /> Editar Roles</span>
+                  )}
                 </button>
               </div>
 
               {isEditingRoles ? (
-                <div className="space-y-4 bg-gray-800/60 p-4 rounded-xl border border-gray-700">
-                  <p className="text-xs text-gray-300 font-semibold">
+                <div className="space-y-4 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                    <div>
+                      <p className="text-xs font-bold text-indigo-950">¿No está en la lista tu rol o instrumento?</p>
+                      <p className="text-xs text-indigo-800/80">Crea nuevos roles, edita sus nombres o elimina los que ya no utilices.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowRoleConfig(true)}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-2xs transition-all"
+                    >
+                      <Settings className="h-3.5 w-3.5" /> Configurar Catálogo
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-700 font-semibold">
                     Selecciona de la lista oficial de tu iglesia los roles ministeriales o instrumentos en los que participas:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
@@ -261,15 +282,15 @@ export function ProfileForm() {
                           key={role}
                           className={`flex items-center gap-3 p-3 rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
                             isChecked
-                              ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                              : 'bg-gray-800/80 border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                              ? 'bg-indigo-50 border-indigo-300 text-indigo-950 font-bold shadow-2xs'
+                              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleRole(role)}
-                            className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900"
+                            className="h-4 w-4 rounded border-gray-300 bg-white text-indigo-600 focus:ring-indigo-500"
                           />
                           <span className="truncate">{role}</span>
                         </label>
@@ -280,7 +301,7 @@ export function ProfileForm() {
                     <button
                       type="button"
                       onClick={() => mutation.mutate()}
-                      className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
+                      className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
                     >
                       Guardar roles seleccionados
                     </button>
@@ -288,11 +309,11 @@ export function ProfileForm() {
                 </div>
               ) : selectedRoles.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-sm text-gray-400 font-medium">Aún no tienes roles o instrumentos asignados en esta iglesia.</p>
+                  <p className="text-sm text-gray-500 font-medium">Aún no tienes roles o instrumentos asignados en esta iglesia.</p>
                   <button
                     type="button"
                     onClick={() => setIsEditingRoles(true)}
-                    className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
+                    className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
                   >
                     + Agregar mis primeros roles
                   </button>
@@ -302,10 +323,10 @@ export function ProfileForm() {
                   {selectedRoles.map((role) => (
                     <div
                       key={role}
-                      className="rounded-xl bg-gray-800/80 px-4 py-3.5 text-sm font-bold text-gray-100 border border-gray-700/60 flex items-center justify-between hover:bg-gray-800 transition-colors shadow-2xs"
+                      className="rounded-xl bg-gray-50/90 px-4 py-3.5 text-sm font-bold text-gray-800 border border-gray-200/80 flex items-center justify-between hover:bg-white hover:shadow-2xs transition-all"
                     >
                       <span>{role}</span>
-                      <span className="w-2 h-2 rounded-full bg-indigo-400/80" />
+                      <span className="w-2 h-2 rounded-full bg-indigo-600" />
                     </div>
                   ))}
                 </div>
@@ -351,28 +372,28 @@ export function ProfileForm() {
               <div className="divide-y divide-gray-100 pt-2 text-sm">
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Visualizar repertorios y letras con tonos (ChordPro)</span>
-                  <span className="text-emerald-600 font-bold">✓ Permitido</span>
+                  <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Permitido</span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Consultar próximas fechas y setlists de servicios</span>
-                  <span className="text-emerald-600 font-bold">✓ Permitido</span>
+                  <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Permitido</span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Crear y editar canciones en el catálogo (Transposición y Tonos)</span>
-                  <span className={activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role === 'member' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role === 'member' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Programar servicios y estructurar órdenes de culto (Setlists)</span>
-                  <span className={activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role === 'member' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role === 'member' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Administrar catálogo de personas, perfiles de seguridad y roles ministeriales</span>
-                  <span className={activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
               </div>
@@ -380,6 +401,7 @@ export function ProfileForm() {
           ) : null}
         </div>
       </div>
+      <RoleConfigDialog open={showRoleConfig} onClose={() => setShowRoleConfig(false)} />
     </div>
   )
 }

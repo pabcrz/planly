@@ -2,7 +2,7 @@
 
 Plataforma para organizar la planificación musical de una iglesia desde una sola base de datos: canciones, letras, acordes, versiones, equipos, servicios y setlists.
 
-Planly busca reemplazar la duplicación manual entre equipos y ofrecer una experiencia cómoda tanto para quienes administran la música como para quienes consultan letras y listas desde un teléfono.
+Planly busca reemplazar la duplicación manual entre equipos y ofrecer una experiencia cómoda tanto para quienes administran la música como para quienes consultan letras y listas desde un teléfono. El acceso es solo por invitación de un administrador de plataforma.
 
 ## Objetivo
 
@@ -212,8 +212,8 @@ Relaciones principales:
 ## Inicio del proyecto
 
 ```bash
-npm create vite@latest selah-plan -- --template react-ts
-cd selah-plan
+npm create vite@latest planly -- --template react-ts
+cd planly
 npm install
 npm install react-router-dom @tanstack/react-query @supabase/supabase-js zod
 ```
@@ -237,7 +237,7 @@ Después se configuran Tailwind CSS y el soporte PWA de acuerdo con sus integrac
 
 ## Criterio de éxito del MVP
 
-SelahPlan estará listo para una primera prueba real cuando sea posible:
+Planly estará listo para una primera prueba real cuando sea posible:
 
 1. Registrar canciones con sus versiones y cifrados.
 2. Crear los dos equipos.
@@ -250,4 +250,3 @@ SelahPlan estará listo para una primera prueba real cuando sea posible:
 ## Posible evolución
 
 Una vez validada la aplicación web, el paso lógico hacia Android es reutilizar el conocimiento y la lógica del proyecto en React Native con Expo. La PWA permite comprobar primero el uso real en dispositivos móviles sin asumir desde el inicio el costo de mantener una aplicación nativa.
-

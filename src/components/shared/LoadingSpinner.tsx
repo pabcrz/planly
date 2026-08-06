@@ -1,4 +1,4 @@
-export function LoadingSpinner({ label = 'Loading…' }: { label?: string }) {
+export function LoadingSpinner({ label = 'Cargando…' }: { label?: string }) {
   return (
     <div role="status" aria-live="polite" className="flex min-h-[40vh] items-center justify-center">
       <div className="flex flex-col items-center gap-3">
