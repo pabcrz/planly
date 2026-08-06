@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Plus, Lock, ListMusic } from 'lucide-react'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import {
   addSetlistItem,
@@ -73,23 +74,36 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
   })
 
   return (
-    <section className="px-4 pb-6 md:px-6">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900">
-          Setlist
-          {isFrozen ? (
-            <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-              Congelado
-            </span>
-          ) : null}
-        </h2>
-        <div className="flex items-center gap-2">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <ListMusic className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              Canciones en el orden
+              {isFrozen ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 border border-amber-200">
+                  <Lock className="h-3 w-3" />
+                  Congelado
+                </span>
+              ) : null}
+            </h2>
+            <p className="text-xs text-gray-400 font-medium">
+              {items ? `${items.length} ${items.length === 1 ? 'canción agregada' : 'canciones agregadas'}` : 'Cargando...'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
           {canEdit ? (
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
             >
+              <Plus className="h-4 w-4" />
               Agregar canción
             </button>
           ) : null}
@@ -97,24 +111,27 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
             <button
               type="button"
               onClick={() => setFreezeOpen(true)}
-              className="inline-flex min-h-11 items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/50 px-3.5 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              Congelar
+              <Lock className="h-3.5 w-3.5 text-gray-500" />
+              Congelar setlist
             </button>
           ) : null}
         </div>
       </div>
 
-      {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
+      {actionError ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">{actionError}</p> : null}
 
-      <div className="mt-3">
+      <div className="mt-5">
         {isLoading ? <LoadingSpinner /> : null}
         {error ? <EmptyState title="No fue posible cargar el setlist" message="Intenta de nuevo." /> : null}
         {items && items.length === 0 ? (
-          <EmptyState title="Aún no hay canciones" message={canEdit ? 'Agrega una canción del catálogo para iniciar el setlist.' : undefined} />
+          <div className="py-8">
+            <EmptyState title="Aún no hay canciones en el setlist" message={canEdit ? 'Haz clic en "Agregar canción" para seleccionar temas del catálogo.' : undefined} />
+          </div>
         ) : null}
         {items && items.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {items.map((item, index) => (
               <SetlistItemRow
                 key={item.id}
@@ -146,7 +163,7 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
         onConfirm={() => freezeMutation.mutate()}
         onCancel={() => setFreezeOpen(false)}
       />
-    </section>
+    </div>
   )
 }
 

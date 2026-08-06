@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Users, UserPlus, Plus, X, Trash2, Shield } from 'lucide-react'
 import { removeParticipant, removeParticipantRole } from '@/services/serviceService'
 import type { ParticipantWithDetails } from '@/services/serviceService'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -35,46 +36,67 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
   })
 
   return (
-    <section className="px-4 pb-6 md:px-6">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900">Participantes</h2>
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Participantes del equipo</h2>
+            <p className="text-xs text-gray-400 font-medium">
+              {participants.length === 1 ? '1 participante asignado' : `${participants.length} participantes asignados`}
+            </p>
+          </div>
+        </div>
+
         {canManage ? (
           <button
             type="button"
             onClick={() => setAddOpen(true)}
-            className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
           >
+            <UserPlus className="h-4 w-4" />
             Agregar participante
           </button>
         ) : null}
       </div>
 
-      {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
+      {actionError ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">{actionError}</p> : null}
 
-      <div className="mt-3">
+      <div className="mt-5">
         {participants.length === 0 ? (
-          <EmptyState
-            title="Aún no hay participantes"
-            message={canManage ? 'Asigna miembros de tu iglesia a este servicio para organizar los roles del equipo.' : undefined}
-          />
+          <div className="py-8">
+            <EmptyState
+              title="Aún no hay participantes asignados"
+              message={canManage ? 'Asigna miembros de tu iglesia a este servicio para organizar los turnos y roles.' : undefined}
+            />
+          </div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {participants.map((participant) => {
               const displayName = participant.membership.person?.display_name ?? 'Miembro sin nombre'
               return (
                 <li
                   key={participant.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3"
+                  className="group flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-indigo-200 hover:bg-indigo-50/10 transition-all duration-150"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">{displayName}</p>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs uppercase">
+                        {displayName.charAt(0)}
+                      </div>
+                      <p className="truncate text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{displayName}</p>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-9">
                       {participant.roles.map(({ role }) => (
                         <span
                           key={role}
-                          className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200/50 px-2.5 py-1 text-xs font-bold text-indigo-800 shadow-2xs"
                         >
-                          {role}
+                          <Shield className="h-3 w-3 text-indigo-500" />
+                          <span>{role}</span>
                           {canManage ? (
                             <button
                               type="button"
@@ -82,9 +104,9 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                               onClick={() =>
                                 removeRoleMutation.mutate({ participantId: participant.id, role })
                               }
-                              className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full hover:bg-indigo-200"
+                              className="inline-flex h-4 w-4 items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-200 transition-colors"
                             >
-                              ✕
+                              <X className="h-2.5 w-2.5" />
                             </button>
                           ) : null}
                         </span>
@@ -93,21 +115,23 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                         <button
                           type="button"
                           onClick={() => setRoleTarget(participant)}
-                          className="inline-flex min-h-6 items-center rounded-full border border-dashed border-gray-300 px-2.5 text-xs font-medium text-gray-500 hover:border-indigo-300 hover:text-indigo-600"
+                          className="inline-flex items-center gap-1 rounded-lg border border-dashed border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
                         >
-                          + Rol
+                          <Plus className="h-3 w-3" />
+                          <span>Agregar rol</span>
                         </button>
                       ) : null}
                     </div>
                   </div>
+
                   {canManage ? (
                     <button
                       type="button"
-                      aria-label={`Eliminar ${displayName}`}
+                      aria-label={`Eliminar a ${displayName}`}
                       onClick={() => removeMutation.mutate(participant.id)}
-                      className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-red-500 hover:bg-red-50"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      ✕
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   ) : null}
                 </li>
@@ -131,6 +155,7 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
         existingParticipants={participants}
         onClose={() => setRoleTarget(null)}
       />
-    </section>
+    </div>
   )
 }
+
