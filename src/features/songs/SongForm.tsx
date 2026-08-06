@@ -84,14 +84,19 @@ export function SongForm() {
       await queryClient.invalidateQueries({ queryKey: ['song'] })
       navigate(isCanonical ? `/admin/songs/${saved.id}` : `/songs/${saved.id}`)
     },
-    onError: (error) => {
+    onError: (error: any) => {
       const zodErrors = toFieldErrors(error)
       if (zodErrors) {
         setFieldErrors(zodErrors)
         setFormError(null)
       } else {
         setFieldErrors({})
-        setFormError('No se pudo guardar la canción. Intenta de nuevo.')
+        const errorMsg = error instanceof Error ? error.message : error?.message || 'No se pudo guardar la canción.'
+        if (errorMsg.includes('permission denied') || errorMsg.includes('row-level security')) {
+          setFormError('No tienes permisos suficientes para crear o editar canciones en esta iglesia.')
+        } else {
+          setFormError(`No se pudo guardar: ${errorMsg}`)
+        }
       }
     },
   })

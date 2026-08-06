@@ -620,7 +620,7 @@ BEGIN
     NULL;
   ELSIF NEW.church_id IS NOT NULL THEN
     -- Church-owned songs are auto-adopted by that church
-    INSERT INTO church_repertoire (church_id, song_id, adopted_by)
+    INSERT INTO public.church_repertoire (church_id, song_id, adopted_by)
     VALUES (NEW.church_id, NEW.id, NEW.created_by)
     ON CONFLICT (church_id, song_id) DO NOTHING;
   END IF;
