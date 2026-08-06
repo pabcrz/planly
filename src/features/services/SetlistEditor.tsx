@@ -233,7 +233,11 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
       await onAdded()
       onClose()
     },
-    onError: () => setFormError('No se pudo agregar la canción.'),
+    onError: (error: any) => {
+      console.error('Error adding setlist item:', error)
+      const msg = error?.message || error?.error_description || error?.details || (typeof error === 'string' ? error : 'Error desconocido al agregar')
+      setFormError(`No se pudo agregar: ${msg}`)
+    },
   })
 
   const term = search.trim().toLowerCase()
