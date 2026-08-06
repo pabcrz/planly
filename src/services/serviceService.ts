@@ -42,16 +42,18 @@ export interface FrozenSetlistItem {
   notes: string | null
 }
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD')
-const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Time must be HH:MM')
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'La fecha debe tener formato AAAA-MM-DD')
+const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'La hora debe tener formato HH:MM')
 
 const createServiceSchema = z.object({
   church_id: z.string().uuid(),
-  team_id: z.string().uuid('Team is required'),
+  team_id: z.string().uuid('El equipo es obligatorio'),
   service_date: dateSchema,
   start_time: timeSchema,
-  timezone: z.string().trim().min(1, 'Timezone is required').max(60),
+  timezone: z.string().trim().min(1, 'La zona horaria es obligatoria').max(60),
   notes: z.string().trim().max(2000).nullish(),
+  director: z.string().trim().max(150).nullish(),
+  service_type: z.string().trim().max(100).nullish(),
 })
 
 const updateServiceSchema = z.object({
@@ -60,22 +62,24 @@ const updateServiceSchema = z.object({
   start_time: timeSchema.optional(),
   timezone: z.string().trim().min(1).max(60).optional(),
   notes: z.string().trim().max(2000).nullish(),
+  director: z.string().trim().max(150).nullish(),
+  service_type: z.string().trim().max(100).nullish(),
 })
 
 const addSetlistItemSchema = z.object({
   setlist_id: z.string().uuid(),
   song_id: z.string().uuid(),
   song_version_id: z.string().uuid(),
-  key: z.string().trim().min(1, 'Key is required').max(10),
+  key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
   notes: z.string().trim().max(500).nullish(),
 })
 
 const updateSetlistItemSchema = z.object({
-  key: z.string().trim().min(1, 'Key is required').max(10).optional(),
+  key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10).optional(),
   notes: z.string().trim().max(500).nullish(),
 })
 
-const roleSchema = z.string().trim().min(1, 'Role is required').max(50)
+const roleSchema = z.string().trim().min(1, 'El rol es obligatorio.').max(50)
 
 export type CreateServiceInput = z.input<typeof createServiceSchema>
 export type UpdateServiceInput = z.input<typeof updateServiceSchema>
@@ -115,7 +119,7 @@ export async function createService(input: CreateServiceInput): Promise<Service>
   const parsed = createServiceSchema.parse(input)
   const { data: service, error } = await supabase
     .from('services')
-    .insert({ ...parsed, notes: parsed.notes ?? null })
+    .insert({ ...parsed, is_published: true, notes: parsed.notes ?? null })
     .select()
     .single()
   if (error) throw error
@@ -188,7 +192,7 @@ export async function getSetlistItems(setlistId: string): Promise<SetlistItemWit
 
 async function assertSetlistEditable(setlistId: string): Promise<void> {
   const setlist = await getSetlistById(setlistId)
-  if (setlist.frozen_at) throw new Error('Setlist is frozen')
+  if (setlist.frozen_at) throw new Error('setlist_frozen')
 }
 
 // Appends at the end: sort_order = current max + 1 (spec: setlist-items).
@@ -266,8 +270,8 @@ export async function removeSetlistItem(id: string): Promise<void> {
 // setlists_update_leader (frozen_at IS NULL) makes this a one-way operation.
 export async function freezeSetlist(serviceId: string): Promise<Setlist> {
   const setlist = await getSetlist(serviceId)
-  if (!setlist) throw new Error('Setlist not found')
-  if (setlist.frozen_at) throw new Error('Setlist is already frozen')
+  if (!setlist) throw new Error('setlist_not_found')
+  if (setlist.frozen_at) throw new Error('setlist_frozen')
   const items = await getSetlistItems(setlist.id)
   const snapshot: FrozenSetlistItem[] = items.map((item) => ({
     sort_order: item.sort_order,
@@ -305,7 +309,7 @@ export async function addParticipant(serviceId: string, membershipId: string): P
     .select()
     .single()
   if (error) {
-    if (error.code === '23505') throw new Error('This member is already a participant')
+    if (error.code === '23505') throw new Error('participant_exists')
     throw error
   }
   return data

@@ -24,27 +24,27 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
   const removeMutation = useMutation({
     mutationFn: (participantId: string) => removeParticipant(participantId),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Could not remove participant'),
+    onError: () => setActionError('No se pudo eliminar al participante.'),
   })
 
   const removeRoleMutation = useMutation({
     mutationFn: ({ participantId, role }: { participantId: string; role: string }) =>
       removeParticipantRole(participantId, role),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Could not remove role'),
+    onError: () => setActionError('No se pudo eliminar el rol.'),
   })
 
   return (
     <section className="px-4 pb-6 md:px-6">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900">Participants</h2>
+        <h2 className="text-base font-semibold text-gray-900">Participantes</h2>
         {canManage ? (
           <button
             type="button"
             onClick={() => setAddOpen(true)}
             className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
           >
-            Add participant
+            Agregar participante
           </button>
         ) : null}
       </div>
@@ -54,13 +54,13 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
       <div className="mt-3">
         {participants.length === 0 ? (
           <EmptyState
-            title="No participants yet"
-            message={canManage ? 'Assign church members to this service.' : undefined}
+            title="Aún no hay participantes"
+            message={canManage ? 'Asigna miembros de tu iglesia a este servicio para organizar los roles del equipo.' : undefined}
           />
         ) : (
           <ul className="flex flex-col gap-2">
             {participants.map((participant) => {
-              const displayName = participant.membership.person?.display_name ?? 'Unnamed member'
+              const displayName = participant.membership.person?.display_name ?? 'Miembro sin nombre'
               return (
                 <li
                   key={participant.id}
@@ -78,7 +78,7 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                           {canManage ? (
                             <button
                               type="button"
-                              aria-label={`Remove role ${role}`}
+                              aria-label={`Eliminar rol ${role}`}
                               onClick={() =>
                                 removeRoleMutation.mutate({ participantId: participant.id, role })
                               }
@@ -95,7 +95,7 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                           onClick={() => setRoleTarget(participant)}
                           className="inline-flex min-h-6 items-center rounded-full border border-dashed border-gray-300 px-2.5 text-xs font-medium text-gray-500 hover:border-indigo-300 hover:text-indigo-600"
                         >
-                          + Role
+                          + Rol
                         </button>
                       ) : null}
                     </div>
@@ -103,7 +103,7 @@ export function ParticipantList({ serviceId, participants, canManage }: Particip
                   {canManage ? (
                     <button
                       type="button"
-                      aria-label={`Remove ${displayName}`}
+                      aria-label={`Eliminar ${displayName}`}
                       onClick={() => removeMutation.mutate(participant.id)}
                       className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-red-500 hover:bg-red-50"
                     >

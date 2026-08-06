@@ -22,12 +22,6 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
     setKeyDraft(item.key)
   }, [item.key])
 
-  const commitKey = () => {
-    const trimmed = keyDraft.trim()
-    if (trimmed && trimmed !== item.key) onUpdateKey(item.id, trimmed)
-    else setKeyDraft(item.key)
-  }
-
   return (
     <li className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
       <span className="w-7 shrink-0 text-center text-sm font-semibold text-gray-400">{item.sort_order}</span>
@@ -39,16 +33,25 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
       </div>
 
       {canEdit ? (
-        <input
-          aria-label={`Key for ${item.song.title}`}
+        <select
+          aria-label={`Tonalidad para ${item.song.title}`}
           value={keyDraft}
-          onChange={(e) => setKeyDraft(e.target.value)}
-          onBlur={commitKey}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          onChange={(e) => {
+            const newKey = e.target.value
+            setKeyDraft(newKey)
+            if (newKey !== item.key) onUpdateKey(item.id, newKey)
           }}
-          className="w-16 shrink-0 rounded-md border border-gray-300 px-2 py-1 text-center text-sm focus:border-indigo-500 focus:outline-none"
-        />
+          className="w-20 shrink-0 rounded-md border border-gray-300 px-2 py-1.5 text-center text-sm font-semibold text-indigo-700 bg-indigo-50/40 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+        >
+          {!['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'Cm', 'C#m', 'Dm', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'Bbm', 'Bm'].includes(keyDraft) ? (
+            <option value={keyDraft}>{keyDraft}</option>
+          ) : null}
+          {['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'Cm', 'C#m', 'Dm', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'Bbm', 'Bm'].map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
       ) : (
         <span className="shrink-0 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
           {item.key}
@@ -59,7 +62,7 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
         <div className="flex shrink-0 items-center">
           <button
             type="button"
-            aria-label="Move up"
+            aria-label="Mover arriba"
             disabled={isFirst}
             onClick={() => onMove(item.id, item.sort_order - 1)}
             className={iconButtonClass}
@@ -68,7 +71,7 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
           </button>
           <button
             type="button"
-            aria-label="Move down"
+            aria-label="Mover abajo"
             disabled={isLast}
             onClick={() => onMove(item.id, item.sort_order + 1)}
             className={iconButtonClass}
@@ -77,7 +80,7 @@ export function SetlistItemRow({ item, isFirst, isLast, canEdit, onMove, onUpdat
           </button>
           <button
             type="button"
-            aria-label={`Remove ${item.song.title}`}
+            aria-label={`Eliminar ${item.song.title}`}
             onClick={() => onRemove(item.id)}
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-red-500 hover:bg-red-50"
           >

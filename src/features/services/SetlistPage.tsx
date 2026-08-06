@@ -34,7 +34,7 @@ export function SetlistPage() {
     return (
       <div>
         <PageHeader title="Setlist" />
-        <EmptyState title="Could not load setlist" message={error?.message} />
+        <EmptyState title="No fue posible cargar el setlist" message="Intenta de nuevo." />
       </div>
     )
   }
@@ -49,7 +49,7 @@ export function SetlistPage() {
             to={service ? `/services/${service.id}` : '/services'}
             className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
-            Back to service
+            Volver al servicio
           </Link>
         }
       />
