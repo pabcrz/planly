@@ -9,12 +9,12 @@ export type TeamWithMembers = Team & { members: TeamMemberWithPerson[] }
 
 const createTeamSchema = z.object({
   church_id: z.string().uuid(),
-  name: z.string().trim().min(1, 'Team name is required').max(100),
+  name: z.string().trim().min(1, 'El nombre del equipo es obligatorio').max(100),
   description: z.string().trim().max(500).nullish(),
 })
 
 const updateTeamSchema = z.object({
-  name: z.string().trim().min(1, 'Team name is required').max(100).optional(),
+  name: z.string().trim().min(1, 'El nombre del equipo es obligatorio').max(100).optional(),
   description: z.string().trim().max(500).nullish(),
 })
 

@@ -13,7 +13,7 @@ export function PersonCard({ membership }: { membership: MembershipWithPerson })
     <div className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-gray-900">
-          {person?.display_name ?? 'Unnamed member'}
+          {person?.display_name ?? 'Miembro sin nombre'}
         </span>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
           {ROLE_LABELS[membership.role] ?? membership.role}
@@ -40,10 +40,10 @@ export function PersonCard({ membership }: { membership: MembershipWithPerson })
             ))}
           </div>
         ) : (
-          <p className="mt-1 text-xs text-gray-400">No instruments or roles listed yet.</p>
+          <p className="mt-1 text-xs text-gray-400">Aún no hay instrumentos o roles registrados.</p>
         )
       ) : (
-        <p className="mt-1 text-xs text-gray-400">No profile yet.</p>
+        <p className="mt-1 text-xs text-gray-400">Aún no hay perfil.</p>
       )}
     </div>
   )

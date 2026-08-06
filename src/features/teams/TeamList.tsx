@@ -25,7 +25,7 @@ export function TeamList() {
   return (
     <div>
       <PageHeader
-        title="Teams"
+        title="Equipos"
         description="Musical teams in your church."
         action={
           canManage ? (
@@ -44,14 +44,14 @@ export function TeamList() {
         {isLoading ? (
           <LoadingSpinner />
         ) : error ? (
-          <EmptyState title="Could not load teams" message={error.message} />
+          <EmptyState title="No fue posible cargar los equipos" message="Intenta de nuevo." />
         ) : !teams || teams.length === 0 ? (
           <EmptyState
             title="No teams yet"
             message={
               canManage
-                ? 'Create your first team to start organizing musicians.'
-                : 'Your worship director has not created any teams yet.'
+                ? 'Crea tu primer equipo para comenzar a organizar músicos.'
+                : 'Tu director de alabanza aún no ha creado equipos.'
             }
             action={
               canManage ? (

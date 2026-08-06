@@ -37,9 +37,9 @@ export function TeamDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['teams'] })
       navigate('/teams')
     },
-    onError: (err) => {
+    onError: () => {
       setDeleteOpen(false)
-      setDeleteError(err instanceof Error ? err.message : 'Could not delete team')
+      setDeleteError('No se pudo eliminar el equipo.')
     },
   })
 
@@ -47,8 +47,8 @@ export function TeamDetailPage() {
   if (error) {
     return (
       <div>
-        <PageHeader title="Team" />
-        <EmptyState title="Could not load team" message={error.message} />
+        <PageHeader title="Equipo" />
+        <EmptyState title="No fue posible cargar el equipo" message="Intenta de nuevo." />
       </div>
     )
   }
@@ -65,7 +65,7 @@ export function TeamDetailPage() {
               to="/teams"
               className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              Back
+              Volver
             </Link>
             {canManage ? (
               <button
@@ -73,7 +73,7 @@ export function TeamDetailPage() {
                 onClick={() => setEditOpen(true)}
                 className="inline-flex min-h-11 items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
               >
-                Edit
+                Editar
               </button>
             ) : null}
             {canDelete ? (
@@ -82,7 +82,7 @@ export function TeamDetailPage() {
                 onClick={() => setDeleteOpen(true)}
                 className="inline-flex min-h-11 items-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
               >
-                Delete
+                Eliminar
               </button>
             ) : null}
           </>
@@ -104,9 +104,9 @@ export function TeamDetailPage() {
 
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete team"
-        message={`Delete "${team.name}"? Its member roster will be removed. This cannot be undone.`}
-        confirmLabel="Delete"
+        title="Eliminar equipo"
+        message={`¿Eliminar "${team.name}"? Se eliminará su lista de miembros. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
         destructive
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setDeleteOpen(false)}

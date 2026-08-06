@@ -6,11 +6,12 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/songs', label: 'Songs' },
-  { to: '/teams', label: 'Teams' },
-  { to: '/services', label: 'Services' },
-  { to: '/profile', label: 'Profile' },
+  { to: '/dashboard', label: 'Tablero' },
+  { to: '/songs', label: 'Canciones' },
+  { to: '/people', label: 'Personas' },
+  { to: '/teams', label: 'Equipos' },
+  { to: '/services', label: 'Servicios' },
+  { to: '/profile', label: 'Perfil' },
 ]
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
@@ -32,16 +33,16 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 py-3 md:px-6">
-        <span className="text-lg font-semibold text-indigo-600">SelahPlan</span>
+        <span className="text-lg font-semibold text-indigo-600">Planly</span>
         <div className="flex items-center gap-3">
           {memberships.length > 0 ? (
             <select
-              aria-label="Active church"
+              aria-label="Iglesia activa"
               value={activeChurchId ?? ''}
               onChange={(event) => setActiveChurch(event.target.value || null)}
               className="min-h-11 max-w-40 rounded-md border border-gray-300 bg-white px-2 text-sm md:max-w-none"
             >
-              {activeChurchId === null ? <option value="">Select church…</option> : null}
+              {activeChurchId === null ? <option value="">Selecciona una iglesia…</option> : null}
               {memberships.map((membership) => (
                 <option key={membership.id} value={membership.church_id}>
                   {membership.church.name}
@@ -54,7 +55,7 @@ export function AppLayout() {
             onClick={handleSignOut}
             className="min-h-11 rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
           >
-            Sign out
+            Cerrar sesión
           </button>
         </div>
       </header>
