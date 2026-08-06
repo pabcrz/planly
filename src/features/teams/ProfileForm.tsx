@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { formatServiceDateOnly, formatServiceDay, formatServiceTime } from '@/features/services/serviceFormat'
 import { RoleConfigDialog } from '@/features/people/RoleConfigDialog'
+import { Shield, Check, X, Pencil, Settings } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -173,8 +174,9 @@ export function ProfileForm() {
 
           <div className="mt-8 pt-6 border-t border-gray-100 w-full">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Nivel de Permiso</span>
-            <span className="mt-1.5 inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200/60">
-              🛡️ {roleLabel}
+            <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200/60">
+              <Shield className="h-3.5 w-3.5 text-indigo-600" />
+              <span>{roleLabel}</span>
             </span>
           </div>
 
@@ -187,7 +189,7 @@ export function ProfileForm() {
             >
               {mutation.isPending ? 'Guardando cambios…' : 'Guardar perfil'}
             </button>
-            {saved ? <p className="mt-2 text-center text-xs font-semibold text-emerald-600">✓ Perfil actualizado correctamente.</p> : null}
+            {saved ? <p className="mt-2 text-center text-xs font-semibold text-emerald-600 inline-flex items-center justify-center gap-1 w-full"><Check className="h-3.5 w-3.5" /> Perfil actualizado correctamente.</p> : null}
             {formError ? <p className="mt-2 text-center text-xs font-semibold text-red-600">{formError}</p> : null}
           </div>
         </div>
@@ -246,7 +248,11 @@ export function ProfileForm() {
                   onClick={() => setIsEditingRoles(!isEditingRoles)}
                   className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 transition-colors"
                 >
-                  {isEditingRoles ? 'Cerrar edición' : '✎ Editar Roles'}
+                  {isEditingRoles ? (
+                    <span className="inline-flex items-center gap-1"><X className="h-3.5 w-3.5" /> Cerrar edición</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" /> Editar Roles</span>
+                  )}
                 </button>
               </div>
 
@@ -262,7 +268,7 @@ export function ProfileForm() {
                       onClick={() => setShowRoleConfig(true)}
                       className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-2xs transition-all"
                     >
-                      ⚙ Configurar Catálogo
+                      <Settings className="h-3.5 w-3.5" /> Configurar Catálogo
                     </button>
                   </div>
                   <p className="text-xs text-gray-700 font-semibold">
@@ -366,28 +372,28 @@ export function ProfileForm() {
               <div className="divide-y divide-gray-100 pt-2 text-sm">
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Visualizar repertorios y letras con tonos (ChordPro)</span>
-                  <span className="text-emerald-600 font-bold">✓ Permitido</span>
+                  <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Permitido</span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Consultar próximas fechas y setlists de servicios</span>
-                  <span className="text-emerald-600 font-bold">✓ Permitido</span>
+                  <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Permitido</span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Crear y editar canciones en el catálogo (Transposición y Tonos)</span>
-                  <span className={activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role === 'member' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role === 'member' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Programar servicios y estructurar órdenes de culto (Setlists)</span>
-                  <span className={activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role === 'member' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role === 'member' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role === 'member' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Administrar catálogo de personas, perfiles de seguridad y roles ministeriales</span>
-                  <span className={activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}>
-                    {activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? '✕ Solo Editores/Admins' : '✓ Permitido'}
+                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                    {activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
               </div>

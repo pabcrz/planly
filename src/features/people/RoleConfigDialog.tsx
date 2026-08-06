@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { getChurchSettings, updateChurchMusicalRoles } from '@/services/peopleService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Plus, Check, X, Pencil, Trash2 } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -146,9 +147,9 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                 <button
                   type="button"
                   onClick={addRole}
-                  className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
                 >
-                  + Agregar
+                  <Plus className="h-4 w-4" /> Agregar
                 </button>
               </div>
             </div>
@@ -181,18 +182,18 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                           <button
                             type="button"
                             onClick={() => saveEdit(idx)}
-                            className="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 font-bold text-xs hover:bg-emerald-200 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 font-bold text-xs hover:bg-emerald-200 transition-colors"
                             title="Confirmar cambio"
                           >
-                            ✓ Guardar
+                            <Check className="h-3.5 w-3.5" /> Guardar
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingIdx(null)}
-                            className="px-2.5 py-1 rounded bg-gray-200 text-gray-700 font-medium text-xs hover:bg-gray-300 transition-colors"
+                            className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-gray-200 text-gray-700 font-medium text-xs hover:bg-gray-300 transition-colors"
                             title="Cancelar"
                           >
-                            ✕
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       ) : (
@@ -205,19 +206,19 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                             <button
                               type="button"
                               onClick={() => startEdit(idx, role)}
-                              className="inline-flex min-h-8 items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
+                              className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
                               title="Editar nombre del rol"
                             >
-                              ✎ Editar
+                              <Pencil className="h-3.5 w-3.5" /> Editar
                             </button>
                             <button
                               type="button"
                               aria-label={`Eliminar rol ${role}`}
                               onClick={() => removeRole(idx)}
-                              className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
+                              className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
                               title="Eliminar del catálogo"
                             >
-                              🗑 Eliminar
+                              <Trash2 className="h-3.5 w-3.5" /> Eliminar
                             </button>
                           </div>
                         </>

@@ -4,6 +4,7 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import { updatePersonRolesAndProfile } from '@/services/peopleService'
 import { RoleConfigDialog } from './RoleConfigDialog'
+import { Settings } from 'lucide-react'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -118,7 +119,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
               onClick={() => setShowRoleConfig(true)}
               className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
             >
-              ⚙ Editar catálogo
+              <Settings className="h-3.5 w-3.5" /> Editar catálogo
             </button>
           </div>
           <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2.5 bg-gray-50/40">

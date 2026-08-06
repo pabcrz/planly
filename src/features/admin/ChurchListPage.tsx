@@ -5,6 +5,7 @@ import { CreateChurchForm } from './CreateChurchForm'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { toastPromise } from '@/lib/toast'
 import type { Church } from '@/types/models'
+import { Users, Trash2 } from 'lucide-react'
 
 export function ChurchListPage() {
   const [page, setPage] = useState(1)
@@ -64,16 +65,17 @@ export function ChurchListPage() {
 
                 <div className="flex items-center gap-4 shrink-0 justify-end border-t sm:border-0 pt-2 sm:pt-0">
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100/80 border border-gray-200 px-3 py-1 rounded-full">
-                    <span>👥</span>
+                    <Users className="h-3.5 w-3.5 text-gray-500" />
                     <span>{church.member_count} miembros</span>
                   </span>
                   <button
                     type="button"
                     aria-label={`Eliminar ${church.name}`}
                     onClick={() => setDeletingChurch(church)}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors shadow-2xs"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors shadow-2xs"
                   >
-                    <span>🗑️ Eliminar Iglesia</span>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Eliminar Iglesia</span>
                   </button>
                 </div>
               </li>
