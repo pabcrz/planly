@@ -5,6 +5,12 @@ export type ChurchRole = Database['public']['Enums']['church_role']
 export type ServiceStatus = Database['public']['Enums']['service_status']
 export type ChurchType = Database['public']['Enums']['church_type']
 
+export interface ChurchSettings {
+  service_types?: string[]
+  musical_roles?: string[]
+  [key: string]: unknown
+}
+
 export interface Church {
   id: string
   name: string
@@ -21,6 +27,19 @@ export interface ChurchMembership {
   church_id: string
   role: ChurchRole
   joined_at: string
+}
+
+export interface PlatformAdmin {
+  user_id: string
+  created_at: string
+}
+
+export interface UserAccessState {
+  user_id: string
+  status: 'pending' | 'active' | 'inactive'
+  changed_at: string
+  changed_by: string | null
+  reason: string | null
 }
 
 export interface Song {
@@ -97,6 +116,8 @@ export interface Service {
   timezone: string
   status: ServiceStatus
   notes: string | null
+  director: string | null
+  service_type: string | null
   created_at: string
 }
 

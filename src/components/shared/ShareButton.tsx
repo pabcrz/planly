@@ -33,7 +33,7 @@ export function ShareButton({ className = '' }: ShareButtonProps) {
       aria-live="polite"
       className={`inline-flex min-h-11 items-center justify-center rounded-md border border-gray-200 px-4 text-sm font-medium text-gray-600 hover:bg-gray-50 ${className}`}
     >
-      {copied ? 'Link copied' : 'Copy link'}
+      {copied ? 'Enlace copiado' : 'Copiar enlace'}
     </button>
   )
 }

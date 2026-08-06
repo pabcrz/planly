@@ -1,5 +1,5 @@
 -- ============================================================
--- SelahPlan Seed Data
+-- Planly Seed Data
 -- Exercises every table, role, and RLS policy path
 -- ============================================================
 
@@ -49,9 +49,9 @@ VALUES ('00000000-0000-0000-0000-000000000008', 'usuario@colectivoadoracion.org'
 
 INSERT INTO churches (id, name, slug, type, timezone)
 VALUES
-  ('10000000-0000-0000-0000-000000000001', 'Iglesia Gracia', 'iglesia-gracia', 'managed', 'America/Argentina/Buenos_Aires'),
-  ('10000000-0000-0000-0000-000000000002', 'Ministerio Selah', 'ministerio-selah', 'managed', 'America/Argentina/Buenos_Aires'),
-  ('10000000-0000-0000-0000-000000000003', 'Colectivo Adoración', 'colectivo-adoracion', 'lightweight', 'America/Argentina/Cordoba');
+  ('10000000-0000-0000-0000-000000000001', 'Iglesia Gracia', 'iglesia-gracia', 'managed', 'America/Mexico_City'),
+  ('10000000-0000-0000-0000-000000000002', 'Ministerio Planly', 'ministerio-planly', 'managed', 'America/Mexico_City'),
+  ('10000000-0000-0000-0000-000000000003', 'Colectivo Adoración', 'colectivo-adoracion', 'lightweight', 'America/Mexico_City');
 
 -- ============================================================
 -- 3. MEMBERSHIPS
@@ -231,14 +231,14 @@ VALUES
 -- Iglesia Gracia: 3 services (planned, active, completed)
 INSERT INTO services (id, church_id, team_id, service_date, start_time, timezone, status, notes)
 VALUES
-  ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '2026-07-30', '10:00', 'America/Argentina/Buenos_Aires', 'planned', 'Servicio del próximo domingo'),
-  ('70000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000002', '2026-07-29', '20:00', 'America/Argentina/Buenos_Aires', 'active', 'Servicio de jueves en curso'),
-  ('70000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '2026-07-27', '10:00', 'America/Argentina/Buenos_Aires', 'completed', 'Servicio del domingo pasado');
+  ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '2026-07-30', '10:00', 'America/Mexico_City', 'planned', 'Servicio del próximo domingo'),
+  ('70000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000002', '2026-07-29', '20:00', 'America/Mexico_City', 'active', 'Servicio de jueves en curso'),
+  ('70000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', '2026-07-27', '10:00', 'America/Mexico_City', 'completed', 'Servicio del domingo pasado');
 
 -- Ministerio Selah: 1 service (planned)
 INSERT INTO services (id, church_id, team_id, service_date, start_time, timezone, status)
 VALUES
-  ('70000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000003', '2026-08-02', '11:00', 'America/Argentina/Buenos_Aires', 'planned');
+  ('70000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000003', '2026-08-02', '11:00', 'America/Mexico_City', 'planned');
 
 -- ============================================================
 -- 13. SETLISTS

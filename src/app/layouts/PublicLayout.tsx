@@ -30,7 +30,7 @@ export function PublicLayout() {
               to="/sign-in"
               className="flex min-h-11 items-center text-sm text-gray-400 hover:text-gray-600"
             >
-              Sign in
+              Iniciar sesión
             </Link>
           </div>
         </header>
