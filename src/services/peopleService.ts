@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pgUuid } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import type { ChurchMembership, Person } from '@/types/models'
 
@@ -7,7 +8,7 @@ export type MembershipWithPerson = ChurchMembership & { person: Person | null }
 const freeTextListSchema = z.array(z.string().trim().min(1).max(50)).max(20)
 
 const createProfileSchema = z.object({
-  membership_id: z.string().uuid(),
+  membership_id: pgUuid(),
   display_name: z.string().trim().min(1, 'El nombre para mostrar es obligatorio').max(100),
   instruments: freeTextListSchema.default([]),
   musical_roles: freeTextListSchema.default([]),

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pgUuid } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import type { Json } from '@/types/database'
@@ -46,8 +47,8 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'La fecha debe tener 
 const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'La hora debe tener formato HH:MM')
 
 const createServiceSchema = z.object({
-  church_id: z.string().uuid(),
-  team_id: z.string().uuid('El equipo es obligatorio'),
+  church_id: pgUuid(),
+  team_id: pgUuid('El equipo es obligatorio'),
   service_date: dateSchema,
   start_time: timeSchema,
   timezone: z.string().trim().min(1, 'La zona horaria es obligatoria').max(60),
@@ -57,7 +58,7 @@ const createServiceSchema = z.object({
 })
 
 const updateServiceSchema = z.object({
-  team_id: z.string().uuid().optional(),
+  team_id: pgUuid().optional(),
   service_date: dateSchema.optional(),
   start_time: timeSchema.optional(),
   timezone: z.string().trim().min(1).max(60).optional(),
@@ -67,9 +68,9 @@ const updateServiceSchema = z.object({
 })
 
 const addSetlistItemSchema = z.object({
-  setlist_id: z.string().uuid(),
-  song_id: z.string().uuid(),
-  song_version_id: z.string().uuid(),
+  setlist_id: pgUuid(),
+  song_id: pgUuid(),
+  song_version_id: pgUuid(),
   key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
   notes: z.string().trim().max(500).nullish(),
 })

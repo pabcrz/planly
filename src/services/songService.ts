@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pgUuid } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import type { ChurchRepertoire, Song, SongVariant, SongVersion } from '@/types/models'
 
@@ -19,7 +20,7 @@ const createSongSchema = z.object({
   tempo: z.number().int().min(20).max(400).nullish(),
   tags: tagsSchema.default([]),
   reference_urls: referenceUrlsSchema.default([]),
-  church_id: z.string().uuid().nullable(),
+  church_id: pgUuid().nullable(),
   is_canonical: z.boolean(),
 }).superRefine((value, ctx) => {
   if (value.is_canonical && value.church_id !== null) {
@@ -39,7 +40,7 @@ const updateSongSchema = z.object({
 })
 
 const createVersionSchema = z.object({
-  song_id: z.string().uuid(),
+  song_id: pgUuid(),
   version_name: z.string().trim().min(1, 'El nombre de la versión es obligatorio.').max(100),
   key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
   chordpro_content: z.string().min(1, 'El contenido de acordes (ChordPro) es obligatorio'),
@@ -54,8 +55,8 @@ const updateVersionSchema = z.object({
 })
 
 const createVariantSchema = z.object({
-  church_id: z.string().uuid(),
-  song_version_id: z.string().uuid(),
+  church_id: pgUuid(),
+  song_version_id: pgUuid(),
   local_key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
   local_content: z.string().nullish(),
   local_notes: z.string().trim().max(2000).nullish(),

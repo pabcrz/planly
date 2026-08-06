@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pgUuid } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import type { ChurchMembership, Person, Team, TeamMember } from '@/types/models'
 
@@ -8,7 +9,7 @@ export type TeamMemberWithPerson = TeamMember & { membership: MembershipWithPers
 export type TeamWithMembers = Team & { members: TeamMemberWithPerson[] }
 
 const createTeamSchema = z.object({
-  church_id: z.string().uuid(),
+  church_id: pgUuid(),
   name: z.string().trim().min(1, 'El nombre del equipo es obligatorio').max(100),
   description: z.string().trim().max(500).nullish(),
 })
