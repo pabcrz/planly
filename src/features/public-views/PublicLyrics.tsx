@@ -59,11 +59,11 @@ export function PublicLyrics() {
   }
 
   if (serviceQuery.isLoading || lyricsQuery.isLoading) {
-    return <LoadingSpinner label="Loading lyrics…" />
+    return <LoadingSpinner label="Cargando letras…" />
   }
 
   if (lyricsQuery.error) {
-    return <EmptyState title="Could not load lyrics" message={lyricsQuery.error.message} />
+    return <EmptyState title="No fue posible cargar las letras" message="Intenta de nuevo." />
   }
 
   const lyrics = lyricsQuery.data
@@ -71,10 +71,10 @@ export function PublicLyrics() {
     return (
       <EmptyState
         title="Lyrics unavailable"
-        message="This song isn't available for public viewing."
+        message="Esta canción no está disponible para la vista pública."
         action={
           <Link to={`/s/${serviceId}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-            Back to setlist
+            Volver al setlist
           </Link>
         }
       />
@@ -91,7 +91,7 @@ export function PublicLyrics() {
         to={`/s/${serviceId}`}
         className="inline-flex min-h-11 items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
       >
-        ← Back to setlist
+        ← Volver al setlist
       </Link>
 
       <header className="mt-1">

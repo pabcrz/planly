@@ -11,20 +11,27 @@ export type SongWithVersions = Song & { versions: SongVersion[] }
 export type RepertoireEntry = ChurchRepertoire & { song: Song }
 
 const tagsSchema = z.array(z.string().trim().min(1).max(40)).max(20)
-const referenceUrlsSchema = z.array(z.string().url('Each reference must be a valid URL')).max(20)
+const referenceUrlsSchema = z.array(z.string().url('Cada referencia debe ser una URL válida')).max(20)
 
 const createSongSchema = z.object({
-  title: z.string().trim().min(1, 'Title is required').max(200),
+  title: z.string().trim().min(1, 'El título es obligatorio.').max(200),
   author: z.string().trim().max(200).nullish(),
   tempo: z.number().int().min(20).max(400).nullish(),
   tags: tagsSchema.default([]),
   reference_urls: referenceUrlsSchema.default([]),
-  church_id: z.string().uuid(),
-  is_canonical: z.boolean().default(false),
+  church_id: z.string().uuid().nullable(),
+  is_canonical: z.boolean(),
+}).superRefine((value, ctx) => {
+  if (value.is_canonical && value.church_id !== null) {
+    ctx.addIssue({ code: 'custom', message: 'Las canciones base no pueden pertenecer a una iglesia.', path: ['church_id'] })
+  }
+  if (!value.is_canonical && value.church_id === null) {
+    ctx.addIssue({ code: 'custom', message: 'Las canciones de iglesia requieren una iglesia.', path: ['church_id'] })
+  }
 })
 
 const updateSongSchema = z.object({
-  title: z.string().trim().min(1, 'Title is required').max(200).optional(),
+  title: z.string().trim().min(1, 'El título es obligatorio.').max(200).optional(),
   author: z.string().trim().max(200).nullish(),
   tempo: z.number().int().min(20).max(400).nullish(),
   tags: tagsSchema.optional(),
@@ -33,29 +40,29 @@ const updateSongSchema = z.object({
 
 const createVersionSchema = z.object({
   song_id: z.string().uuid(),
-  version_name: z.string().trim().min(1, 'Version name is required').max(100),
-  key: z.string().trim().min(1, 'Key is required').max(10),
-  chordpro_content: z.string().min(1, 'ChordPro content is required'),
+  version_name: z.string().trim().min(1, 'El nombre de la versión es obligatorio.').max(100),
+  key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
+  chordpro_content: z.string().min(1, 'El contenido de acordes (ChordPro) es obligatorio'),
   notes: z.string().trim().max(2000).nullish(),
 })
 
 const updateVersionSchema = z.object({
-  version_name: z.string().trim().min(1, 'Version name is required').max(100).optional(),
-  key: z.string().trim().min(1, 'Key is required').max(10).optional(),
-  chordpro_content: z.string().min(1, 'ChordPro content is required').optional(),
+  version_name: z.string().trim().min(1, 'El nombre de la versión es obligatorio.').max(100).optional(),
+  key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10).optional(),
+  chordpro_content: z.string().min(1, 'El contenido de acordes (ChordPro) es obligatorio').optional(),
   notes: z.string().trim().max(2000).nullish(),
 })
 
 const createVariantSchema = z.object({
   church_id: z.string().uuid(),
   song_version_id: z.string().uuid(),
-  local_key: z.string().trim().min(1, 'Key is required').max(10),
+  local_key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10),
   local_content: z.string().nullish(),
   local_notes: z.string().trim().max(2000).nullish(),
 })
 
 const updateVariantSchema = z.object({
-  local_key: z.string().trim().min(1, 'Key is required').max(10).optional(),
+  local_key: z.string().trim().min(1, 'La tonalidad es obligatoria').max(10).optional(),
   local_content: z.string().nullish(),
   local_notes: z.string().trim().max(2000).nullish(),
 })
@@ -76,11 +83,10 @@ async function requireUserId(): Promise<string> {
 
 // Merged catalog: canonical songs + songs owned by this church. Role
 // enforcement for mutations lives in RLS; these functions throw on denial.
-export async function getSongs(churchId: string, filters: SongFilters = {}): Promise<Song[]> {
-  let query = supabase
-    .from('songs')
-    .select('*')
-    .or(`is_canonical.eq.true,church_id.eq.${churchId}`)
+export async function getSongs(churchId: string | null, filters: SongFilters = {}): Promise<Song[]> {
+  let query = supabase.from('songs').select('*')
+  if (churchId) query = query.or(`is_canonical.eq.true,church_id.eq.${churchId}`)
+  else query = query.eq('is_canonical', true).is('church_id', null)
 
   // Commas and quotes would break the PostgREST or() filter string.
   const search = filters.search?.trim().replace(/[",]/g, '')
@@ -176,7 +182,10 @@ export async function adoptSong(churchId: string, songId: string): Promise<Churc
   const userId = await requireUserId()
   const { data, error } = await supabase
     .from('church_repertoire')
-    .insert({ church_id: churchId, song_id: songId, adopted_by: userId, is_published: false })
+    .upsert(
+      { church_id: churchId, song_id: songId, adopted_by: userId, is_published: true, archived_at: null },
+      { onConflict: 'church_id,song_id' }
+    )
     .select()
     .single()
   if (error) throw error

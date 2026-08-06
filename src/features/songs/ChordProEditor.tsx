@@ -14,8 +14,8 @@ export function ChordProEditor({ value, onChange }: ChordProEditorProps) {
     if (!showPreview) return null
     try {
       return { document: parseChordPro(value), error: null }
-    } catch (error) {
-      return { document: null, error: error instanceof Error ? error.message : 'Parse error' }
+    } catch {
+      return { document: null, error: 'No se pudo interpretar el contenido de ChordPro.' }
     }
   }, [showPreview, value])
 
@@ -23,14 +23,14 @@ export function ChordProEditor({ value, onChange }: ChordProEditorProps) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label htmlFor="chordpro_content" className="block text-sm font-medium text-gray-700">
-          ChordPro content *
+          Contenido ChordPro *
         </label>
         <button
           type="button"
           onClick={() => setShowPreview((v) => !v)}
           className="inline-flex min-h-11 items-center rounded-md px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
         >
-          {showPreview ? 'Hide preview' : 'Preview'}
+          {showPreview ? 'Ocultar vista previa' : 'Vista previa'}
         </button>
       </div>
       <textarea

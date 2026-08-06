@@ -9,9 +9,9 @@ export interface ChordProRendererProps {
 }
 
 const SECTION_LABELS: Record<Exclude<ChordProSectionType, 'unknown'>, string> = {
-  verse: 'VERSE',
-  chorus: 'CHORUS',
-  bridge: 'BRIDGE',
+  verse: 'VERSO',
+  chorus: 'CORO',
+  bridge: 'PUENTE',
 }
 
 // A chord paired with the lyric text that follows it, so the chord can be

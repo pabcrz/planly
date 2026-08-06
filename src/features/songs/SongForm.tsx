@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { createSong, getSong, updateSong } from '@/services/songService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { MediaReferenceCard } from './MediaReferenceCard'
 
 type FieldErrors = Partial<Record<'title' | 'author' | 'tempo' | 'tags' | 'reference_urls', string>>
 
@@ -25,8 +26,10 @@ export function SongForm() {
   const { id } = useParams()
   const isEdit = !!id
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const { activeChurchId } = useChurch()
+  const isCanonical = location.pathname.startsWith('/admin/songs')
 
   const { data: song, isLoading } = useQuery({
     queryKey: ['song', id],
@@ -38,7 +41,8 @@ export function SongForm() {
   const [author, setAuthor] = useState('')
   const [tempo, setTempo] = useState('')
   const [tags, setTags] = useState('')
-  const [referenceUrls, setReferenceUrls] = useState('')
+  const [referenceUrls, setReferenceUrls] = useState<string[]>([])
+  const [newUrl, setNewUrl] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -48,8 +52,20 @@ export function SongForm() {
     setAuthor(song.author ?? '')
     setTempo(song.tempo ? String(song.tempo) : '')
     setTags(song.tags.join(', '))
-    setReferenceUrls(Array.isArray(song.reference_urls) ? song.reference_urls.join('\n') : '')
+    setReferenceUrls(Array.isArray(song.reference_urls) ? (song.reference_urls as string[]) : [])
   }, [song])
+
+  const addUrl = () => {
+    const trimmed = newUrl.trim()
+    if (trimmed && !referenceUrls.includes(trimmed)) {
+      setReferenceUrls([...referenceUrls, trimmed])
+      setNewUrl('')
+    }
+  }
+
+  const removeUrl = (index: number) => {
+    setReferenceUrls(referenceUrls.filter((_, i) => i !== index))
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -58,15 +74,15 @@ export function SongForm() {
         author: author.trim() || null,
         tempo: tempo.trim() ? Number.parseInt(tempo, 10) : null,
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-        reference_urls: referenceUrls.split('\n').map((u) => u.trim()).filter(Boolean),
+        reference_urls: referenceUrls.filter(Boolean),
       }
       if (isEdit) return updateSong(id!, input)
-      return createSong({ ...input, church_id: activeChurchId!, is_canonical: false })
+      return createSong({ ...input, church_id: isCanonical ? null : activeChurchId!, is_canonical: isCanonical })
     },
     onSuccess: async (saved) => {
       await queryClient.invalidateQueries({ queryKey: ['songs'] })
       await queryClient.invalidateQueries({ queryKey: ['song'] })
-      navigate(`/songs/${saved.id}`)
+      navigate(isCanonical ? `/admin/songs/${saved.id}` : `/songs/${saved.id}`)
     },
     onError: (error) => {
       const zodErrors = toFieldErrors(error)
@@ -75,7 +91,7 @@ export function SongForm() {
         setFormError(null)
       } else {
         setFieldErrors({})
-        setFormError(error instanceof Error ? error.message : 'Something went wrong')
+        setFormError('No se pudo guardar la canción. Intenta de nuevo.')
       }
     },
   })
@@ -84,14 +100,14 @@ export function SongForm() {
 
   const inputClass =
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
-  const labelClass = 'mb-1 block text-sm font-medium text-gray-700'
+  const labelClass = 'mb-1.5 block text-sm font-semibold text-gray-700'
   const errorClass = 'mt-1 text-xs text-red-600'
 
   return (
     <div>
-      <PageHeader title={isEdit ? 'Edit song' : 'New song'} />
+      <PageHeader title={isEdit ? 'Editar canción' : isCanonical ? 'Nueva canción base' : 'Nueva canción'} />
       <form
-        className="flex max-w-xl flex-col gap-4 px-4 pb-6 md:px-6"
+        className="px-4 pb-12 md:px-6 max-w-6xl"
         onSubmit={(e) => {
           e.preventDefault()
           setFieldErrors({})
@@ -99,95 +115,146 @@ export function SongForm() {
           mutation.mutate()
         }}
       >
-        <div>
-          <label htmlFor="title" className={labelClass}>
-            Title *
-          </label>
-          <input
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={inputClass}
-            required
-          />
-          {fieldErrors.title ? <p className={errorClass}>{fieldErrors.title}</p> : null}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Song Metadata */}
+          <div className="lg:col-span-6 flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">
+              Información general
+            </h2>
+            <div>
+              <label htmlFor="title" className={labelClass}>
+                Título *
+              </label>
+              <input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ej. Cuán grande es Él"
+                className={inputClass}
+                required
+              />
+              {fieldErrors.title ? <p className={errorClass}>{fieldErrors.title}</p> : null}
+            </div>
+
+            <div>
+              <label htmlFor="author" className={labelClass}>
+                Autor / Artista
+              </label>
+              <input
+                id="author"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Ej. Carl Boberg, En Espíritu y en Verdad"
+                className={inputClass}
+              />
+              {fieldErrors.author ? <p className={errorClass}>{fieldErrors.author}</p> : null}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="tempo" className={labelClass}>
+                  Tempo (BPM)
+                </label>
+                <input
+                  id="tempo"
+                  type="number"
+                  inputMode="numeric"
+                  min={20}
+                  max={400}
+                  value={tempo}
+                  onChange={(e) => setTempo(e.target.value)}
+                  placeholder="Ej. 72"
+                  className={inputClass}
+                />
+                {fieldErrors.tempo ? <p className={errorClass}>{fieldErrors.tempo}</p> : null}
+              </div>
+              <div>
+                <label htmlFor="tags" className={labelClass}>
+                  Etiquetas (separadas por comas)
+                </label>
+                <input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="adoración, domingo, himno"
+                  className={inputClass}
+                />
+                {fieldErrors.tags ? <p className={errorClass}>{fieldErrors.tags}</p> : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Multimedia references */}
+          <div className="lg:col-span-6 flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="border-b border-gray-100 pb-3">
+              <h2 className="text-base font-semibold text-gray-900">
+                Archivos Multimedia y Referencias
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Añade enlaces de Spotify, YouTube Music, YouTube o Apple Music como referencia para el equipo de alabanza.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://open.spotify.com/... o https://youtube.com/..."
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addUrl()
+                  }
+                }}
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={addUrl}
+                className="shrink-0 rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Añadir
+              </button>
+            </div>
+            {fieldErrors.reference_urls ? (
+              <p className={errorClass}>{fieldErrors.reference_urls}</p>
+            ) : null}
+
+            <div className="flex flex-col gap-3 mt-1">
+              {referenceUrls.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-400">
+                  No has añadido referencias multimedia.
+                </div>
+              ) : (
+                referenceUrls.map((url, i) => (
+                  <MediaReferenceCard
+                    key={`${url}-${i}`}
+                    url={url}
+                    readOnly={false}
+                    onDelete={() => removeUrl(i)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="author" className={labelClass}>
-            Author
-          </label>
-          <input
-            id="author"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            className={inputClass}
-          />
-          {fieldErrors.author ? <p className={errorClass}>{fieldErrors.author}</p> : null}
-        </div>
+        {formError ? <p className="mt-4 text-sm text-red-600">{formError}</p> : null}
 
-        <div>
-          <label htmlFor="tempo" className={labelClass}>
-            Tempo (BPM)
-          </label>
-          <input
-            id="tempo"
-            type="number"
-            inputMode="numeric"
-            min={20}
-            max={400}
-            value={tempo}
-            onChange={(e) => setTempo(e.target.value)}
-            className={inputClass}
-          />
-          {fieldErrors.tempo ? <p className={errorClass}>{fieldErrors.tempo}</p> : null}
-        </div>
-
-        <div>
-          <label htmlFor="tags" className={labelClass}>
-            Tags (comma-separated)
-          </label>
-          <input
-            id="tags"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="worship, advent, spanish"
-            className={inputClass}
-          />
-          {fieldErrors.tags ? <p className={errorClass}>{fieldErrors.tags}</p> : null}
-        </div>
-
-        <div>
-          <label htmlFor="reference_urls" className={labelClass}>
-            Reference URLs (one per line)
-          </label>
-          <textarea
-            id="reference_urls"
-            value={referenceUrls}
-            onChange={(e) => setReferenceUrls(e.target.value)}
-            rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-          />
-          {fieldErrors.reference_urls ? (
-            <p className={errorClass}>{fieldErrors.reference_urls}</p>
-          ) : null}
-        </div>
-
-        {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
-
-        <div className="flex items-center gap-3">
+        <div className="mt-6 flex items-center gap-3">
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
-            {mutation.isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create song'}
+            {mutation.isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear canción'}
           </button>
           <Link
-            to={isEdit ? `/songs/${id}` : '/songs'}
-            className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            to={isCanonical ? (isEdit ? `/admin/songs/${id}` : '/admin/songs') : isEdit ? `/songs/${id}` : '/songs'}
+            className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            Cancel
+            Cancelar
           </Link>
         </div>
       </form>
