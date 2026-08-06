@@ -8,6 +8,7 @@ import { getServices } from '@/services/serviceService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { formatServiceDateOnly, formatServiceDay, formatServiceTime } from '@/features/services/serviceFormat'
+import { RoleConfigDialog } from '@/features/people/RoleConfigDialog'
 
 const DEFAULT_ROLES = [
   'Director de alabanza',
@@ -60,6 +61,7 @@ export function ProfileForm() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('roles')
   const [isEditingRoles, setIsEditingRoles] = useState(false)
+  const [showRoleConfig, setShowRoleConfig] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -250,6 +252,19 @@ export function ProfileForm() {
 
               {isEditingRoles ? (
                 <div className="space-y-4 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                    <div>
+                      <p className="text-xs font-bold text-indigo-950">¿No está en la lista tu rol o instrumento?</p>
+                      <p className="text-xs text-indigo-800/80">Crea nuevos roles, edita sus nombres o elimina los que ya no utilices.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowRoleConfig(true)}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 border border-indigo-200 shadow-2xs transition-all"
+                    >
+                      ⚙ Configurar Catálogo
+                    </button>
+                  </div>
                   <p className="text-xs text-gray-700 font-semibold">
                     Selecciona de la lista oficial de tu iglesia los roles ministeriales o instrumentos en los que participas:
                   </p>
@@ -380,6 +395,7 @@ export function ProfileForm() {
           ) : null}
         </div>
       </div>
+      <RoleConfigDialog open={showRoleConfig} onClose={() => setShowRoleConfig(false)} />
     </div>
   )
 }
