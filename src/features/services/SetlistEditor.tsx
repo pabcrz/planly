@@ -9,12 +9,13 @@ import {
   reorderSetlistItem,
   updateSetlistItem,
 } from '@/services/serviceService'
-import { getRepertoire, getSong } from '@/services/songService'
+import { getSongs, getSong } from '@/services/songService'
 import type { Setlist, Song, SongVersion } from '@/types/models'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { SetlistItemRow } from './SetlistItem'
+import { KeyPicker } from '@/features/songs/KeyPicker'
 
 interface SetlistEditorProps {
   setlist: Setlist
@@ -44,19 +45,19 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
     mutationFn: ({ itemId, newSortOrder }: { itemId: string; newSortOrder: number }) =>
       reorderSetlistItem(itemId, newSortOrder),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Could not reorder'),
+    onError: () => setActionError('No se pudo reordenar el setlist.'),
   })
 
   const keyMutation = useMutation({
     mutationFn: ({ itemId, key }: { itemId: string; key: string }) => updateSetlistItem(itemId, { key }),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Could not update key'),
+    onError: () => setActionError('No se pudo actualizar la tonalidad.'),
   })
 
   const removeMutation = useMutation({
     mutationFn: (itemId: string) => removeSetlistItem(itemId),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Could not remove song'),
+    onError: () => setActionError('No se pudo eliminar la canción.'),
   })
 
   const freezeMutation = useMutation({
@@ -65,9 +66,9 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
       setFreezeOpen(false)
       await invalidate()
     },
-    onError: (err) => {
+    onError: () => {
       setFreezeOpen(false)
-      setActionError(err instanceof Error ? err.message : 'Could not freeze setlist')
+      setActionError('No se pudo congelar el setlist.')
     },
   })
 
@@ -78,7 +79,7 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
           Setlist
           {isFrozen ? (
             <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-              Frozen
+              Congelado
             </span>
           ) : null}
         </h2>
@@ -87,18 +88,18 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 shadow-sm transition-colors"
             >
-              Add song
+              Agregar canción
             </button>
           ) : null}
           {canEdit ? (
             <button
               type="button"
               onClick={() => setFreezeOpen(true)}
-              className="inline-flex min-h-11 items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              className="inline-flex min-h-11 items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              Freeze
+              Congelar
             </button>
           ) : null}
         </div>
@@ -108,9 +109,9 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
 
       <div className="mt-3">
         {isLoading ? <LoadingSpinner /> : null}
-        {error ? <EmptyState title="Could not load setlist" message={error.message} /> : null}
+        {error ? <EmptyState title="No fue posible cargar el setlist" message="Intenta de nuevo." /> : null}
         {items && items.length === 0 ? (
-          <EmptyState title="No songs yet" message={canEdit ? 'Add a song from your repertoire to start the setlist.' : undefined} />
+          <EmptyState title="Aún no hay canciones" message={canEdit ? 'Agrega una canción del catálogo para iniciar el setlist.' : undefined} />
         ) : null}
         {items && items.length > 0 ? (
           <ul className="flex flex-col gap-2">
@@ -139,9 +140,9 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
 
       <ConfirmDialog
         open={freezeOpen}
-        title="Freeze setlist"
-        message="Freezing snapshots the current songs and locks the setlist for editing. This cannot be undone."
-        confirmLabel="Freeze"
+        title="Congelar setlist"
+        message="Congelar guarda una copia de las canciones actuales y bloquea la edición. Esta acción no se puede deshacer."
+        confirmLabel="Congelar"
         onConfirm={() => freezeMutation.mutate()}
         onCancel={() => setFreezeOpen(false)}
       />
@@ -149,7 +150,7 @@ export function SetlistEditor({ setlist, canManage }: SetlistEditorProps) {
   )
 }
 
-// --- Song picker: repertoire search → version select → key ---
+// --- Song picker: catalog search → version select → key ---
 
 interface SongPickerDialogProps {
   open: boolean
@@ -168,9 +169,9 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
   const [notes, setNotes] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
-  const { data: repertoire, isLoading } = useQuery({
-    queryKey: ['repertoire', activeChurchId],
-    queryFn: () => getRepertoire(activeChurchId!),
+  const { data: songs, isLoading } = useQuery({
+    queryKey: ['songs', activeChurchId],
+    queryFn: () => getSongs(activeChurchId!),
     enabled: open && !!activeChurchId,
   })
 
@@ -215,16 +216,14 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
       await onAdded()
       onClose()
     },
-    onError: (err) => setFormError(err instanceof Error ? err.message : 'Could not add song'),
+    onError: () => setFormError('No se pudo agregar la canción.'),
   })
 
   const term = search.trim().toLowerCase()
-  const matches = (repertoire ?? [])
-    .map((entry) => entry.song)
-    .filter(
-      (song) =>
-        !term || song.title.toLowerCase().includes(term) || (song.author ?? '').toLowerCase().includes(term),
-    )
+  const matches = (songs ?? []).filter(
+    (song) =>
+      !term || song.title.toLowerCase().includes(term) || (song.author ?? '').toLowerCase().includes(term),
+  )
 
   const inputClass =
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
@@ -233,38 +232,40 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-lg rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+      className="w-full max-w-xl rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
     >
-      <div className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto p-6">
-        <h2 className="text-lg font-semibold text-gray-900">Add song to setlist</h2>
+      <div className="flex max-h-[85vh] flex-col gap-4 overflow-y-auto p-6">
+        <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">
+          Agregar canción al setlist
+        </h2>
 
         {!selectedSong ? (
           <>
             <input
               type="search"
-              aria-label="Search repertoire"
-              placeholder="Search by title or author"
+              aria-label="Buscar en el catálogo de canciones"
+              placeholder="Buscar por título o autor..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={inputClass}
             />
             {isLoading ? <LoadingSpinner /> : null}
             {!isLoading && matches.length === 0 ? (
-              <EmptyState title="No songs found" message="Your church repertoire has no matching songs." />
+              <EmptyState title="No hay canciones" message="No se encontraron canciones que coincidan en el catálogo." />
             ) : null}
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-1.5 max-h-[50vh] overflow-y-auto pr-1">
               {matches.map((song) => (
                 <li key={song.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedSong(song)}
-                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left hover:bg-indigo-50"
+                    className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3.5 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors shadow-2xs"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-gray-900">{song.title}</span>
-                      {song.author ? <span className="block truncate text-xs text-gray-500">{song.author}</span> : null}
+                      <span className="block truncate text-sm font-semibold text-gray-900">{song.title}</span>
+                      {song.author ? <span className="block truncate text-xs text-gray-500 mt-0.5">{song.author}</span> : null}
                     </span>
-                    <span className="text-gray-400">→</span>
+                    <span className="text-indigo-600 text-base font-bold">→</span>
                   </button>
                 </li>
               ))}
@@ -275,25 +276,25 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
             <button
               type="button"
               onClick={() => setSelectedSong(null)}
-              className="self-start text-sm text-indigo-600 hover:underline"
+              className="self-start text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center min-h-9"
             >
-              ← Back to search
+              ← Volver a la búsqueda
             </button>
-            <p className="text-sm font-medium text-gray-900">{selectedSong.title} — choose a version</p>
+            <p className="text-sm font-bold text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{selectedSong.title} — Elige una versión</p>
             {!songDetail ? <LoadingSpinner /> : null}
             {songDetail && songDetail.versions.length === 0 ? (
-              <EmptyState title="No versions" message="This song has no versions yet." />
+              <EmptyState title="No hay versiones" message="Esta canción aún no tiene versiones configuradas." />
             ) : null}
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-1.5">
               {songDetail?.versions.map((version) => (
                 <li key={version.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedVersion(version)}
-                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left hover:bg-indigo-50"
+                    className="flex min-h-12 w-full items-center justify-between gap-2 rounded-lg border border-gray-100 px-3.5 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors shadow-2xs"
                   >
-                    <span className="text-sm font-medium text-gray-900">{version.version_name}</span>
-                    <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                    <span className="text-sm font-semibold text-gray-900">{version.version_name}</span>
+                    <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-800">
                       {version.key}
                     </span>
                   </button>
@@ -313,52 +314,51 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
             <button
               type="button"
               onClick={() => setSelectedVersion(null)}
-              className="self-start text-sm text-indigo-600 hover:underline"
+              className="self-start text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center min-h-9"
             >
-              ← Back to versions
+              ← Volver a las versiones
             </button>
-            <p className="text-sm text-gray-700">
-              {selectedSong.title} · {selectedVersion.version_name}
-            </p>
-            <div>
-              <label htmlFor="setlist-item-key" className="mb-1 block text-sm font-medium text-gray-700">
-                Key *
-              </label>
-              <input
-                id="setlist-item-key"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-                className={inputClass}
-                required
-              />
+            <div className="rounded-lg bg-indigo-50/60 p-3 border border-indigo-100">
+              <p className="text-sm font-bold text-indigo-950">
+                {selectedSong.title}
+              </p>
+              <p className="text-xs text-indigo-700 font-medium">
+                Versión: {selectedVersion.version_name} · Tonalidad original: <strong className="font-bold">{selectedVersion.key}</strong>
+              </p>
             </div>
             <div>
-              <label htmlFor="setlist-item-notes" className="mb-1 block text-sm font-medium text-gray-700">
-                Notes
+              <label htmlFor="setlist-item-key" className="mb-1.5 block text-sm font-semibold text-gray-800">
+                Tonalidad para este servicio *
+              </label>
+              <KeyPicker value={key} onChange={setKey} id="setlist-item-key" />
+            </div>
+            <div>
+              <label htmlFor="setlist-item-notes" className="mb-1 block text-sm font-semibold text-gray-700">
+                Notas (opcional)
               </label>
               <input
                 id="setlist-item-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. shortened bridge"
+                placeholder="Ej. Empezar con solo de teclado, puente corto..."
                 className={inputClass}
               />
             </div>
             {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="submit"
-                disabled={addMutation.isPending}
-                className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                disabled={addMutation.isPending || !key}
+                className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
               >
-                {addMutation.isPending ? 'Adding…' : 'Add to setlist'}
+                {addMutation.isPending ? 'Agregando…' : 'Agregar al setlist'}
               </button>
             </div>
           </form>
@@ -371,7 +371,7 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
               onClick={onClose}
               className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         )}

@@ -9,7 +9,7 @@ import { getTeams } from '@/services/teamService'
 import type { Service, ServiceStatus } from '@/types/models'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
-type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'timezone' | 'notes', string>>
+type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
 function toFieldErrors(error: unknown): FieldErrors | null {
   if (!(error instanceof ZodError)) return null
@@ -24,6 +24,16 @@ function toFieldErrors(error: unknown): FieldErrors | null {
 }
 
 const STATUSES: ServiceStatus[] = ['planned', 'active', 'completed']
+const TIME_ZONE = 'America/Mexico_City'
+
+const TIME_INTERVALS: string[] = []
+for (let h = 6; h <= 22; h++) {
+  const hourStr = h.toString().padStart(2, '0')
+  TIME_INTERVALS.push(`${hourStr}:00`, `${hourStr}:30`)
+}
+TIME_INTERVALS.push('23:00')
+
+const DEFAULT_SERVICE_TYPES = ['general', 'domingo', 'jueves', 'viernes', 'especial', 'otro']
 
 interface ServiceFormProps {
   open: boolean
@@ -38,12 +48,13 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
   const isEdit = !!service
   const dialogRef = useRef<HTMLDialogElement>(null)
   const queryClient = useQueryClient()
-  const { activeMembership } = useChurch()
 
   const [teamId, setTeamId] = useState('')
+  const [serviceType, setServiceType] = useState('general')
+  const [customType, setCustomType] = useState('')
+  const [director, setDirector] = useState('')
   const [serviceDate, setServiceDate] = useState('')
   const [startTime, setStartTime] = useState('')
-  const [timezone, setTimezone] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<ServiceStatus>('planned')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -65,28 +76,37 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
   useEffect(() => {
     if (!open) return
     setTeamId(service?.team_id ?? '')
+    const currentType = service?.service_type ?? 'general'
+    if (DEFAULT_SERVICE_TYPES.includes(currentType)) {
+      setServiceType(currentType)
+      setCustomType('')
+    } else {
+      setServiceType('otro')
+      setCustomType(currentType)
+    }
+    setDirector(service?.director ?? '')
     setServiceDate(service?.service_date ?? '')
     setStartTime(service?.start_time?.slice(0, 5) ?? '')
-    setTimezone(service?.timezone ?? activeMembership?.church.timezone ?? '')
     setNotes(service?.notes ?? '')
     setStatus(service?.status ?? 'planned')
     setFieldErrors({})
     setFormError(null)
-  }, [open, service, activeMembership])
+  }, [open, service])
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const actualType = serviceType === 'otro' ? customType.trim() || 'general' : serviceType
       const input = {
         team_id: teamId,
+        service_type: actualType || 'general',
         service_date: serviceDate,
         start_time: startTime,
-        timezone,
+        director: director.trim() || null,
+        timezone: TIME_ZONE,
         notes: notes.trim() || null,
       }
       if (isEdit) {
         const updated = await updateService(service.id, input)
-        // Status transitions go through changeStatus, which enforces the
-        // forward-only planned → active → completed flow.
         if (status !== service.status) await changeStatus(service.id, status)
         return updated
       }
@@ -105,24 +125,24 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
         setFormError(null)
       } else {
         setFieldErrors({})
-        setFormError(error instanceof Error ? error.message : 'Something went wrong')
+        setFormError('No se pudo guardar el servicio. Intenta de nuevo.')
       }
     },
   })
 
   const inputClass =
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
-  const labelClass = 'mb-1 block text-sm font-medium text-gray-700'
+  const labelClass = 'mb-1.5 block text-sm font-semibold text-gray-700'
   const errorClass = 'mt-1 text-xs text-red-600'
 
   return (
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+      className="w-full max-w-lg rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
     >
       <form
-        className="flex flex-col gap-4 p-6"
+        className="flex flex-col gap-5 p-6"
         onSubmit={(e) => {
           e.preventDefault()
           setFieldErrors({})
@@ -130,11 +150,13 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
           mutation.mutate()
         }}
       >
-        <h2 className="text-lg font-semibold text-gray-900">{isEdit ? 'Edit service' : 'New service'}</h2>
+        <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
+          {isEdit ? 'Editar servicio' : 'Nuevo servicio'}
+        </h2>
 
         <div>
           <label htmlFor="service-team" className={labelClass}>
-            Team *
+            Equipo *
           </label>
           {teamsLoading ? (
             <LoadingSpinner />
@@ -146,7 +168,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
               className={inputClass}
               required
             >
-              <option value="">Select a team</option>
+              <option value="">Selecciona un equipo</option>
               {teams?.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
@@ -157,10 +179,46 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
           {fieldErrors.team_id ? <p className={errorClass}>{fieldErrors.team_id}</p> : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="service-type" className={labelClass}>
+            Tipo de servicio *
+          </label>
+          <select
+            id="service-type"
+            value={serviceType}
+            onChange={(e) => setServiceType(e.target.value)}
+            className={inputClass}
+          >
+            <option value="general">General</option>
+            <option value="domingo">Domingo</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="especial">Especial</option>
+            <option value="otro">Otro (personalizado)...</option>
+          </select>
+          {fieldErrors.service_type ? <p className={errorClass}>{fieldErrors.service_type}</p> : null}
+        </div>
+
+        {serviceType === 'otro' ? (
+          <div>
+            <label htmlFor="service-type-custom" className={labelClass}>
+              Nombre del tipo personalizado *
+            </label>
+            <input
+              id="service-type-custom"
+              value={customType}
+              onChange={(e) => setCustomType(e.target.value)}
+              placeholder="Ej. Congreso, Vigilia, Jóvenes"
+              className={inputClass}
+              required
+            />
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="service-date" className={labelClass}>
-              Date *
+              Fecha *
             </label>
             <input
               id="service-date"
@@ -174,39 +232,47 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
           </div>
           <div>
             <label htmlFor="service-time" className={labelClass}>
-              Start time *
+              Hora de inicio *
             </label>
-            <input
+            <select
               id="service-time"
-              type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               className={inputClass}
               required
-            />
+            >
+              <option value="">Selecciona la hora</option>
+              {!TIME_INTERVALS.includes(startTime) && startTime ? (
+                <option value={startTime}>{startTime}</option>
+              ) : null}
+              {TIME_INTERVALS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
             {fieldErrors.start_time ? <p className={errorClass}>{fieldErrors.start_time}</p> : null}
           </div>
         </div>
 
         <div>
-          <label htmlFor="service-timezone" className={labelClass}>
-            Timezone *
+          <label htmlFor="service-director" className={labelClass}>
+            Director de servicio / Alabanza
           </label>
           <input
-            id="service-timezone"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-            placeholder="America/Argentina/Buenos_Aires"
+            id="service-director"
+            value={director}
+            onChange={(e) => setDirector(e.target.value)}
+            placeholder="Ej. Pastor Juan, Marcos..."
             className={inputClass}
-            required
           />
-          {fieldErrors.timezone ? <p className={errorClass}>{fieldErrors.timezone}</p> : null}
+          {fieldErrors.director ? <p className={errorClass}>{fieldErrors.director}</p> : null}
         </div>
 
         {isEdit ? (
           <div>
             <label htmlFor="service-status" className={labelClass}>
-              Status
+              Estado
             </label>
             <select
               id="service-status"
@@ -216,7 +282,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {{ planned: 'Planeado', active: 'Activo', completed: 'Completado' }[s]}
                 </option>
               ))}
             </select>
@@ -225,13 +291,13 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
         <div>
           <label htmlFor="service-notes" className={labelClass}>
-            Notes
+            Notas
           </label>
           <textarea
             id="service-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            rows={3}
+            rows={2}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
           />
           {fieldErrors.notes ? <p className={errorClass}>{fieldErrors.notes}</p> : null}
@@ -239,20 +305,20 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
         {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
-            {mutation.isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create service'}
+            {mutation.isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear servicio'}
           </button>
         </div>
       </form>

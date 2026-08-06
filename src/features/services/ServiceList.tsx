@@ -43,46 +43,53 @@ export function ServiceList() {
   })
 
   const filterClass =
-    'min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
+    'min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white shadow-sm'
+
+  const statusLabels: Record<ServiceStatus, string> = {
+    planned: 'Planeados',
+    active: 'Activos',
+    completed: 'Completados',
+  }
 
   return (
     <div>
       <PageHeader
-        title="Services"
+        title="Servicios y eventos"
+        description="Administra los servicios, ensayos y eventos programados para tus equipos."
         action={
           canManage ? (
             <Link
               to="/services/new"
-              className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors"
             >
-              New service
+              Nuevo servicio
             </Link>
           ) : undefined
         }
       />
 
-      <div className="flex flex-wrap gap-2 px-4 pb-4 md:px-6">
+      <div className="flex flex-wrap gap-3 px-4 pb-5 md:px-6 max-w-5xl">
         <input
           type="date"
-          aria-label="From date"
+          aria-label="Fecha desde"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
           className={filterClass}
         />
         <input
           type="date"
-          aria-label="To date"
+          aria-label="Fecha hasta"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
           className={filterClass}
         />
         <select
-          aria-label="Filter by team"
+          aria-label="Filtrar por equipo"
           value={teamId}
           onChange={(e) => setTeamId(e.target.value)}
           className={filterClass}
         >
-          <option value="">All teams</option>
+          <option value="">Todos los equipos</option>
           {teams?.map((team) => (
             <option key={team.id} value={team.id}>
               {team.name}
@@ -90,27 +97,37 @@ export function ServiceList() {
           ))}
         </select>
         <select
-          aria-label="Filter by status"
+          aria-label="Filtrar por estado"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className={filterClass}
         >
-          <option value="">All statuses</option>
+          <option value="">Todos los estados</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {statusLabels[s]}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="flex flex-col gap-2 px-4 pb-6 md:px-6">
+      <div className="flex flex-col gap-3 px-4 pb-12 md:px-6 max-w-5xl">
         {isLoading ? <LoadingSpinner /> : null}
-        {error ? <EmptyState title="Could not load services" message={error.message} /> : null}
+        {error ? <EmptyState title="No fue posible cargar los servicios" message="Intenta de nuevo." /> : null}
         {services && services.length === 0 ? (
           <EmptyState
-            title="No services found"
-            message={canManage ? 'Create your first service to start building setlists.' : 'No services match the current filters.'}
+            title="No se encontraron servicios"
+            message={canManage ? 'Crea tu primer servicio para comenzar a preparar setlists.' : 'No hay servicios que coincidan con los filtros actuales.'}
+            action={
+              canManage ? (
+                <Link
+                  to="/services/new"
+                  className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors"
+                >
+                  Nuevo servicio
+                </Link>
+              ) : undefined
+            }
           />
         ) : null}
         {services?.map((service) => <ServiceCard key={service.id} service={service} />)}

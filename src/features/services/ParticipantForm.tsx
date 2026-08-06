@@ -6,8 +6,18 @@ import { addParticipant, addParticipantRole } from '@/services/serviceService'
 import type { ParticipantWithDetails } from '@/services/serviceService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
-// Suggested roles per tasks.md; free-text roles can be added on top.
-const SUGGESTED_ROLES = ['Vocalista', 'Guitarra', 'Bajo', 'Batería', 'Teclado', 'Líder', 'Pastor']
+// Suggested roles per user requirements; free-text roles can be added on top.
+const SUGGESTED_ROLES = [
+  'Director de alabanza',
+  'Vocalista',
+  'Guitarra acústica',
+  'Guitarra eléctrica',
+  'Bajo',
+  'Batería',
+  'Teclado',
+  'Líder',
+  'Pastor',
+]
 
 interface ParticipantFormProps {
   open: boolean
@@ -88,7 +98,7 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
       await queryClient.invalidateQueries({ queryKey: ['participants', serviceId] })
       onClose()
     },
-    onError: (err) => setFormError(err instanceof Error ? err.message : 'Could not save participant'),
+    onError: () => setFormError('No se pudo guardar el participante.'),
   })
 
   const canSubmit = roleOnly ? selectedRoles.length > 0 : !!membershipId
@@ -111,14 +121,14 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
       >
         <h2 className="text-lg font-semibold text-gray-900">
           {roleOnly
-            ? `Add roles — ${participant.membership.person?.display_name ?? 'Unnamed member'}`
-            : 'Add participant'}
+            ? `Agregar roles — ${participant.membership.person?.display_name ?? 'Miembro sin nombre'}`
+            : 'Agregar participante'}
         </h2>
 
         {!roleOnly ? (
           <div>
             <label htmlFor="participant-member" className="mb-1 block text-sm font-medium text-gray-700">
-              Member *
+              Miembro *
             </label>
             {peopleLoading ? (
               <LoadingSpinner />
@@ -130,16 +140,16 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
                 className={inputClass}
                 required
               >
-                <option value="">Select a church member</option>
+                <option value="">Selecciona un miembro de la iglesia</option>
                 {available.map((membership) => (
                   <option key={membership.id} value={membership.id}>
-                    {membership.person?.display_name ?? 'Unnamed member'}
+                    {membership.person?.display_name ?? 'Miembro sin nombre'}
                   </option>
                 ))}
               </select>
             )}
             {!peopleLoading && available.length === 0 ? (
-              <p className="mt-1 text-xs text-gray-500">All church members are already participants.</p>
+              <p className="mt-1 text-xs text-gray-500">Todos los miembros de la iglesia ya participan.</p>
             ) : null}
           </div>
         ) : null}
@@ -181,7 +191,7 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
           ) : null}
           <div className="mt-2 flex gap-2">
             <input
-              aria-label="Custom role"
+              aria-label="Rol personalizado"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
               onKeyDown={(e) => {
@@ -190,7 +200,7 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
                   addCustomRole()
                 }
               }}
-              placeholder="Custom role"
+              placeholder="Rol personalizado"
               className={inputClass}
             />
             <button
@@ -198,7 +208,7 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
               onClick={addCustomRole}
               className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-gray-300 px-3 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              Add
+              Agregar
             </button>
           </div>
         </fieldset>
@@ -211,14 +221,14 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
             onClick={onClose}
             className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
             disabled={!canSubmit || mutation.isPending}
             className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Saving…' : roleOnly ? 'Add roles' : 'Add participant'}
+            {mutation.isPending ? 'Guardando…' : roleOnly ? 'Agregar roles' : 'Agregar participante'}
           </button>
         </div>
       </form>

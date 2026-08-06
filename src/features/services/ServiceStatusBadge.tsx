@@ -7,9 +7,9 @@ const STYLES: Record<ServiceStatus, string> = {
 }
 
 const LABELS: Record<ServiceStatus, string> = {
-  planned: 'Planned',
-  active: 'Active',
-  completed: 'Completed',
+  planned: 'Planeado',
+  active: 'Activo',
+  completed: 'Completado',
 }
 
 export function ServiceStatusBadge({ status }: { status: ServiceStatus }) {
