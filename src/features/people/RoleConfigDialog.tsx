@@ -111,7 +111,7 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-lg rounded-2xl p-0 shadow-2xl backdrop:bg-black/40 border border-gray-200 bg-white"
+      className="m-auto w-full max-w-lg rounded-2xl p-0 shadow-2xl backdrop:bg-black/40 border border-gray-200 bg-white"
     >
       <form onSubmit={handleSave} className="flex flex-col gap-5 p-6 max-h-[88vh] overflow-y-auto">
         <div>

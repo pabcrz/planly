@@ -253,7 +253,7 @@ function SongPickerDialog({ open, setlistId, onClose, onAdded }: SongPickerDialo
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-xl rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
+      className="m-auto w-full max-w-xl rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
     >
       <div className="flex max-h-[85vh] flex-col gap-4 overflow-y-auto p-6">
         <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2">

@@ -109,7 +109,7 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+      className="m-auto w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40"
     >
       <form
         className="flex flex-col gap-4 p-6"

@@ -34,7 +34,7 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onCancel={onCancel}
-      className="w-full max-w-sm rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+      className="m-auto w-full max-w-sm rounded-lg p-0 shadow-xl backdrop:bg-black/40"
     >
       <div className="p-6">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

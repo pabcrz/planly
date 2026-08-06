@@ -139,7 +139,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-lg rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
+      className="m-auto w-full max-w-lg rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
     >
       <form
         className="flex flex-col gap-5 p-6"

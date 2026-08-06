@@ -88,7 +88,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-md rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
+      className="m-auto w-full max-w-md rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 max-h-[85vh] overflow-y-auto">
         <div>
