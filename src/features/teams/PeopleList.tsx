@@ -16,16 +16,16 @@ export function PeopleList() {
 
   return (
     <section className="px-4 pb-6 md:px-6">
-      <h2 className="text-base font-semibold text-gray-900">People</h2>
-      <p className="mt-1 text-sm text-gray-500">Everyone in your church and their musical roles.</p>
+      <h2 className="text-base font-semibold text-gray-900">Personas</h2>
+      <p className="mt-1 text-sm text-gray-500">Todas las personas de tu iglesia y sus roles musicales.</p>
 
       <div className="mt-4">
         {isLoading ? (
           <LoadingSpinner />
         ) : error ? (
-          <EmptyState title="Could not load people" message={error.message} />
+          <EmptyState title="No fue posible cargar las personas" message="Intenta de nuevo." />
         ) : !people || people.length === 0 ? (
-          <EmptyState title="No people found" message="Church members will appear here." />
+          <EmptyState title="No hay personas" message="Los miembros de la iglesia aparecerán aquí." />
         ) : (
           <ul className="flex flex-col gap-3">
             {people.map((membership) => (

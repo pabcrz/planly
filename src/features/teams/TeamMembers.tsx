@@ -7,9 +7,9 @@ import { getPeople } from '@/services/peopleService'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 const ROLE_LABELS: Record<string, string> = {
-  church_admin: 'Admin',
-  worship_director: 'Worship director',
-  member: 'Member',
+  church_admin: 'Administrador de iglesia',
+  worship_director: 'Director de alabanza',
+  member: 'Miembro',
 }
 
 interface TeamMembersProps {
@@ -46,8 +46,8 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
       setActionError(null)
       await invalidate()
     },
-    onError: (error) => {
-      setActionError(error instanceof Error ? error.message : 'Could not add member')
+    onError: () => {
+      setActionError('No se pudo agregar el miembro.')
     },
   })
 
@@ -57,14 +57,14 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
       setActionError(null)
       await invalidate()
     },
-    onError: (error) => {
-      setActionError(error instanceof Error ? error.message : 'Could not remove member')
+    onError: () => {
+      setActionError('No se pudo eliminar el miembro.')
     },
   })
 
   return (
     <section className="px-4 pb-6 md:px-6">
-      <h2 className="text-base font-semibold text-gray-900">Members</h2>
+      <h2 className="text-base font-semibold text-gray-900">Miembros</h2>
 
       {canManage ? (
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -72,12 +72,12 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
             value={selectedMembershipId}
             onChange={(e) => setSelectedMembershipId(e.target.value)}
             className="min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none sm:max-w-xs"
-            aria-label="Add member"
+            aria-label="Agregar miembro"
           >
-            <option value="">Select a church member…</option>
+            <option value="">Selecciona un miembro de la iglesia…</option>
             {candidates.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.person?.display_name ?? 'Unnamed member'}
+                {p.person?.display_name ?? 'Miembro sin nombre'}
               </option>
             ))}
           </select>
@@ -87,7 +87,7 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
             onClick={() => addMutation.mutate(selectedMembershipId)}
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {addMutation.isPending ? 'Adding…' : 'Add member'}
+            {addMutation.isPending ? 'Agregando…' : 'Agregar miembro'}
           </button>
         </div>
       ) : null}
@@ -96,7 +96,7 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
 
       <div className="mt-4">
         {members.length === 0 ? (
-          <EmptyState title="No members yet" message="Add church members to build the roster." />
+          <EmptyState title="Aún no hay miembros" message="Agrega miembros de la iglesia para formar el equipo." />
         ) : (
           <ul className="flex flex-col gap-3">
             {members.map((member) => {
@@ -110,7 +110,7 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {person?.display_name ?? 'Unnamed member'}
+                          {person?.display_name ?? 'Miembro sin nombre'}
                         </span>
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                           {ROLE_LABELS[member.membership.role] ?? member.membership.role}
@@ -144,7 +144,7 @@ export function TeamMembers({ teamId, members, canManage }: TeamMembersProps) {
                         onClick={() => removeMutation.mutate(member.membership_id)}
                         className="min-h-11 shrink-0 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                       >
-                        Remove
+                        Eliminar
                       </button>
                     ) : null}
                   </div>

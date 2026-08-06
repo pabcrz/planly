@@ -5,17 +5,25 @@ import { AuthLayout } from '@/app/layouts/AuthLayout'
 import { PublicLayout } from '@/app/layouts/PublicLayout'
 import { AuthGuard } from '@/features/auth/AuthGuard'
 import { ChurchGuard } from '@/features/auth/ChurchGuard'
+import { AdminGuard } from '@/features/auth/AdminGuard'
 
 const LoginForm = lazy(() => import('@/features/auth/LoginForm').then((m) => ({ default: m.LoginForm })))
-const SignupForm = lazy(() => import('@/features/auth/SignupForm').then((m) => ({ default: m.SignupForm })))
+const InvitePage = lazy(() => import('@/features/auth/InvitePage').then((m) => ({ default: m.InvitePage })))
 const DashboardPage = lazy(() =>
   import('@/features/auth/DashboardPage').then((m) => ({ default: m.DashboardPage })),
 )
+const AdminLayout = lazy(() => import('@/features/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })))
+const UserListPage = lazy(() => import('@/features/admin/UserListPage').then((m) => ({ default: m.UserListPage })))
+const UserDetailPage = lazy(() => import('@/features/admin/UserDetailPage').then((m) => ({ default: m.UserDetailPage })))
+const ChurchListPage = lazy(() => import('@/features/admin/ChurchListPage').then((m) => ({ default: m.ChurchListPage })))
 
 const SongListPage = lazy(() => import('@/features/songs/SongList').then((m) => ({ default: m.SongList })))
 const SongFormPage = lazy(() => import('@/features/songs/SongForm').then((m) => ({ default: m.SongForm })))
 const SongDetailPage = lazy(() =>
   import('@/features/songs/SongDetailPage').then((m) => ({ default: m.SongDetailPage })),
+)
+const PeopleListPage = lazy(() =>
+  import('@/features/people/PeopleListPage').then((m) => ({ default: m.PeopleListPage })),
 )
 const TeamListPage = lazy(() => import('@/features/teams/TeamList').then((m) => ({ default: m.TeamList })))
 const TeamDetailPage = lazy(() =>
@@ -48,7 +56,8 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       { path: '/sign-in', element: <LoginForm /> },
-      { path: '/sign-up', element: <SignupForm /> },
+      { path: '/sign-up', element: <Navigate to="/sign-in" replace /> },
+      { path: '/auth/invite', element: <InvitePage /> },
     ],
   },
   {
@@ -66,6 +75,7 @@ export const router = createBrowserRouter([
           { path: '/songs/new', element: <SongFormPage /> },
           { path: '/songs/:id', element: <SongDetailPage /> },
           { path: '/songs/:id/edit', element: <SongFormPage /> },
+          { path: '/people', element: <PeopleListPage /> },
           { path: '/teams', element: <TeamListPage /> },
           { path: '/teams/:id', element: <TeamDetailPage /> },
           { path: '/services', element: <ServiceListPage /> },
@@ -73,6 +83,19 @@ export const router = createBrowserRouter([
           { path: '/services/:id', element: <ServiceDetailPage /> },
           { path: '/setlists/:id', element: <SetlistPage /> },
           { path: '/profile', element: <ProfilePage /> },
+        ],
+      },
+      {
+        element: <AdminGuard><AdminLayout /></AdminGuard>,
+        children: [
+          { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+          { path: '/admin/users', element: <UserListPage /> },
+          { path: '/admin/users/:userId', element: <UserDetailPage /> },
+          { path: '/admin/churches', element: <ChurchListPage /> },
+          { path: '/admin/songs', element: <SongListPage /> },
+          { path: '/admin/songs/new', element: <SongFormPage /> },
+          { path: '/admin/songs/:id', element: <SongDetailPage /> },
+          { path: '/admin/songs/:id/edit', element: <SongFormPage /> },
         ],
       },
     ],

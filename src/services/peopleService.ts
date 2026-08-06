@@ -8,13 +8,13 @@ const freeTextListSchema = z.array(z.string().trim().min(1).max(50)).max(20)
 
 const createProfileSchema = z.object({
   membership_id: z.string().uuid(),
-  display_name: z.string().trim().min(1, 'Display name is required').max(100),
+  display_name: z.string().trim().min(1, 'El nombre para mostrar es obligatorio').max(100),
   instruments: freeTextListSchema.default([]),
   musical_roles: freeTextListSchema.default([]),
 })
 
 const updateProfileSchema = z.object({
-  display_name: z.string().trim().min(1, 'Display name is required').max(100).optional(),
+  display_name: z.string().trim().min(1, 'El nombre para mostrar es obligatorio').max(100).optional(),
   instruments: freeTextListSchema.optional(),
   musical_roles: freeTextListSchema.optional(),
 })
@@ -72,3 +72,59 @@ export async function upsertProfile(input: CreateProfileInput): Promise<Person> 
   if (error) throw error
   return data
 }
+
+export async function updateMembershipRole(membershipId: string, role: ChurchMembership['role']): Promise<ChurchMembership> {
+  const { data, error } = await supabase
+    .from('church_memberships')
+    .update({ role })
+    .eq('id', membershipId)
+    .select()
+    .single()
+  if (error) throw error
+  return data as ChurchMembership
+}
+
+export async function deleteMembership(membershipId: string): Promise<void> {
+  const { error } = await supabase.from('church_memberships').delete().eq('id', membershipId)
+  if (error) throw error
+}
+
+export async function updatePersonRolesAndProfile(
+  membershipId: string,
+  input: { display_name?: string; musical_roles: string[]; instruments?: string[] }
+): Promise<Person> {
+  const { data: existing } = await supabase.from('people').select('display_name').eq('membership_id', membershipId).maybeSingle()
+  const name = input.display_name?.trim() || existing?.display_name || 'Miembro del equipo'
+
+  const { data, error } = await supabase
+    .from('people')
+    .upsert({
+      membership_id: membershipId,
+      display_name: name,
+      musical_roles: input.musical_roles,
+      instruments: input.instruments || [],
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function getChurchSettings(churchId: string): Promise<{ musical_roles?: string[] }> {
+  const { data, error } = await supabase.from('churches').select('settings').eq('id', churchId).single()
+  if (error) throw error
+  return (data?.settings || {}) as { musical_roles?: string[] }
+}
+
+export async function updateChurchMusicalRoles(churchId: string, musicalRoles: string[]): Promise<void> {
+  const { data: existing } = await supabase.from('churches').select('settings').eq('id', churchId).single()
+  const settings = (existing?.settings && typeof existing.settings === 'object' && !Array.isArray(existing.settings) ? existing.settings : {}) as Record<string, unknown>
+  const updatedSettings = { ...settings, musical_roles: musicalRoles }
+
+  const { error } = await supabase
+    .from('churches')
+    .update({ settings: updatedSettings as any })
+    .eq('id', churchId)
+  if (error) throw error
+}
+

@@ -69,7 +69,7 @@ export function TeamForm({ open, churchId, team, onClose }: TeamFormProps) {
         setFormError(null)
       } else {
         setFieldErrors({})
-        setFormError(error instanceof Error ? error.message : 'Something went wrong')
+        setFormError('No se pudo guardar el equipo. Intenta de nuevo.')
       }
     },
   })
@@ -83,7 +83,7 @@ export function TeamForm({ open, churchId, team, onClose }: TeamFormProps) {
     <dialog
       ref={dialogRef}
       onCancel={onClose}
-      className="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+      className="m-auto w-full max-w-md rounded-xl border border-gray-100 p-0 shadow-2xl backdrop:bg-black/50"
     >
       <form
         className="flex flex-col gap-4 p-6"
@@ -94,11 +94,11 @@ export function TeamForm({ open, churchId, team, onClose }: TeamFormProps) {
           mutation.mutate()
         }}
       >
-        <h2 className="text-lg font-semibold text-gray-900">{isEdit ? 'Edit team' : 'New team'}</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{isEdit ? 'Editar equipo' : 'Nuevo equipo'}</h2>
 
         <div>
           <label htmlFor="team-name" className={labelClass}>
-            Name *
+            Nombre *
           </label>
           <input
             id="team-name"
@@ -112,7 +112,7 @@ export function TeamForm({ open, churchId, team, onClose }: TeamFormProps) {
 
         <div>
           <label htmlFor="team-description" className={labelClass}>
-            Description
+            Descripción
           </label>
           <textarea
             id="team-description"
@@ -132,14 +132,14 @@ export function TeamForm({ open, churchId, team, onClose }: TeamFormProps) {
             onClick={onClose}
             className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create team'}
+            {mutation.isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear equipo'}
           </button>
         </div>
       </form>
