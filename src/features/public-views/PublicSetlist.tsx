@@ -57,20 +57,20 @@ export function PublicSetlist() {
   })
 
   if (serviceQuery.isLoading || setlistQuery.isLoading) {
-    return <LoadingSpinner label="Loading setlist…" />
+    return <LoadingSpinner label="Cargando setlist…" />
   }
 
   const error = serviceQuery.error ?? setlistQuery.error
   if (error) {
-    return <EmptyState title="Could not load this setlist" message={error.message} />
+    return <EmptyState title="No fue posible cargar este setlist" message="Intenta de nuevo." />
   }
 
   const service = serviceQuery.data
   if (!service) {
     return (
       <EmptyState
-        title="Setlist not found"
-        message="This link may be invalid, or the setlist is no longer available."
+        title="No encontramos el setlist"
+        message="Este enlace podría no ser válido o el setlist ya no está disponible."
       />
     )
   }
@@ -91,7 +91,7 @@ export function PublicSetlist() {
       </header>
 
       {items.length === 0 ? (
-        <EmptyState title="No songs yet" message="This setlist doesn't have any songs yet." />
+        <EmptyState title="Aún no hay canciones" message="Este setlist aún no tiene canciones." />
       ) : (
         <ol className="mt-6 flex flex-col gap-2">
           {items.map((item) => (

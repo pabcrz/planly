@@ -15,13 +15,18 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { SongVersions } from './SongVersions'
 import { VersionForm } from './VersionForm'
+import { MediaReferenceCard } from './MediaReferenceCard'
+import { usePlatformAdmin } from '@/features/auth/platformAdmin'
+import type { SongVersion } from '@/types/models'
 
 export function SongDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { activeChurchId, activeMembership } = useChurch()
+  const { data: isPlatformAdmin } = usePlatformAdmin()
   const [showVersionForm, setShowVersionForm] = useState(false)
+  const [editingVersion, setEditingVersion] = useState<SongVersion | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -39,8 +44,9 @@ export function SongDetailPage() {
 
   const repertoireEntry = repertoire?.find((entry) => entry.song_id === id) ?? null
   const isChurchAdmin = activeMembership?.role === 'church_admin'
-  // RLS: church-owned songs are admin-editable; canonical songs are curator-only.
-  const canEditSong = isChurchAdmin && !!song && song.church_id === activeChurchId
+  const isCanonicalAdmin = isPlatformAdmin === true && song?.is_canonical === true && song.church_id === null
+  const canEditSong = isCanonicalAdmin || (isChurchAdmin && !!song && song.church_id === activeChurchId)
+  const songBasePath = isCanonicalAdmin ? '/admin/songs' : '/songs'
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ['songs'] })
@@ -51,33 +57,33 @@ export function SongDetailPage() {
   const adoptMutation = useMutation({
     mutationFn: () => adoptSong(activeChurchId!, id!),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Adopt failed'),
+    onError: () => setActionError('No se pudo adoptar la canción.'),
   })
 
   const archiveMutation = useMutation({
     mutationFn: () => archiveSong(activeChurchId!, id!),
     onSuccess: invalidate,
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Archive failed'),
+    onError: () => setActionError('No se pudo archivar la canción.'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteSong(id!),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['songs'] })
-      navigate('/songs')
+      navigate(songBasePath)
     },
-    onError: (err) => setActionError(err instanceof Error ? err.message : 'Delete failed'),
+    onError: () => setActionError('No se pudo eliminar la canción.'),
   })
 
   if (isLoading) return <LoadingSpinner />
   if (error || !song) {
     return (
       <EmptyState
-        title="Song not found"
-        message={error?.message ?? 'This song does not exist or is not visible to your church.'}
+        title="No encontramos la canción"
+        message="Esta canción no existe o no está disponible para tu iglesia."
         action={
           <Link to="/songs" className="text-sm font-medium text-indigo-600 hover:underline">
-            Back to songs
+            Volver a canciones
           </Link>
         }
       />
@@ -96,9 +102,9 @@ export function SongDetailPage() {
                 type="button"
                 onClick={() => adoptMutation.mutate()}
                 disabled={adoptMutation.isPending}
-                className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
               >
-                Adopt
+                Añadir a biblioteca
               </button>
             ) : null}
             {repertoireEntry && isChurchAdmin ? (
@@ -106,25 +112,25 @@ export function SongDetailPage() {
                 type="button"
                 onClick={() => archiveMutation.mutate()}
                 disabled={archiveMutation.isPending}
-                className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors"
               >
-                Archive
+                Archivar
               </button>
             ) : null}
             {canEditSong ? (
               <>
                 <Link
-                  to={`/songs/${song.id}/edit`}
-                  className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  to={`${songBasePath}/${song.id}/edit`}
+                  className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  Edit
+                  Editar
                 </Link>
                 <button
                   type="button"
                   onClick={() => setConfirmingDelete(true)}
-                  className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  Delete
+                  Eliminar
                 </button>
               </>
             ) : null}
@@ -132,27 +138,27 @@ export function SongDetailPage() {
         }
       />
 
-      <div className="px-4 md:px-6">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+      <div className="px-4 pb-12 md:px-6 max-w-6xl">
+        <div className="flex flex-wrap items-center gap-2.5 text-sm">
           {song.tempo ? (
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200/60">
               {song.tempo} BPM
             </span>
           ) : null}
           {song.is_canonical ? (
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-              Canonical
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200/60">
+              Canción Base
             </span>
           ) : null}
           {repertoireEntry ? (
-            <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-              In repertoire
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200/60">
+              En repertorio
             </span>
           ) : null}
           {song.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600"
+              className="rounded-full border border-gray-200 bg-gray-50/80 px-2.5 py-1 text-xs font-medium text-gray-600"
             >
               {tag}
             </span>
@@ -161,37 +167,53 @@ export function SongDetailPage() {
 
         {actionError ? <p className="mt-3 text-sm text-red-600">{actionError}</p> : null}
 
-        <section className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Versions</h2>
-            {canEditSong && !showVersionForm ? (
-              <button
-                type="button"
-                onClick={() => setShowVersionForm(true)}
-                className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-              >
-                Add version
-              </button>
-            ) : null}
-          </div>
-          {showVersionForm ? (
-            <div className="mb-4">
-              <VersionForm
-                songId={song.id}
-                onSaved={() => setShowVersionForm(false)}
-                onCancel={() => setShowVersionForm(false)}
-              />
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Versiones y tonos</h2>
+              {canEditSong && !showVersionForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowVersionForm(true)}
+                  className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors"
+                >
+                  Agregar versión
+                </button>
+              ) : null}
             </div>
-          ) : null}
-          <SongVersions songId={song.id} versions={song.versions} canManage={canEditSong} />
-        </section>
+            {showVersionForm || editingVersion ? (
+              <div className="mb-2">
+                <VersionForm
+                  songId={song.id}
+                  version={editingVersion}
+                  onSaved={() => { setShowVersionForm(false); setEditingVersion(null) }}
+                  onCancel={() => { setShowVersionForm(false); setEditingVersion(null) }}
+                />
+              </div>
+            ) : null}
+            <SongVersions songId={song.id} versions={song.versions} canManage={canEditSong} onEdit={setEditingVersion} />
+          </div>
+
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Archivos multimedia</h2>
+            {!(Array.isArray(song.reference_urls) && song.reference_urls.length > 0) ? (
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 text-center text-xs text-gray-500">
+                No hay enlaces multimedia para esta canción.
+              </div>
+            ) : (
+              (song.reference_urls as string[]).map((url: string, i: number) => (
+                <MediaReferenceCard key={`${url}-${i}`} url={url} readOnly={true} />
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       <ConfirmDialog
         open={confirmingDelete}
-        title="Delete song"
-        message={`Delete "${song.title}" and all its versions? This cannot be undone.`}
-        confirmLabel="Delete"
+        title="Eliminar canción"
+        message={`¿Eliminar "${song.title}" y todas sus versiones? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
         destructive
         onConfirm={() => {
           setConfirmingDelete(false)
