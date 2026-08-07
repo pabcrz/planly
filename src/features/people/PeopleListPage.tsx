@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +11,7 @@ import { deleteMembership, getChurchSettings, getPeople, updateMembershipRole } 
 import type { ChurchRole } from '@/types/models'
 import { RoleConfigDialog } from './RoleConfigDialog'
 import { PersonRolesDialog } from './PersonRolesDialog'
+import { InvitePersonDialog } from './InvitePersonDialog'
 import { Settings, UserPlus, Trash2 } from 'lucide-react'
 
 const DEFAULT_ROLES = [
@@ -36,6 +36,7 @@ export function PeopleListPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   
   const [showRoleConfig, setShowRoleConfig] = useState(false)
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [editingMemberRoles, setEditingMemberRoles] = useState<MembershipWithPerson | null>(null)
   const [deletingMember, setDeletingMember] = useState<MembershipWithPerson | null>(null)
 
@@ -165,13 +166,14 @@ export function PeopleListPage() {
               </Button>
             ) : null}
             {isChurchAdmin ? (
-              <Link
-                to="/invite"
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+              <Button
+                variant="primary"
+                onClick={() => setShowInviteDialog(true)}
+                className="gap-2"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>Invitar Persona</span>
-              </Link>
+              </Button>
             ) : null}
           </div>
         }
@@ -433,6 +435,16 @@ export function PeopleListPage() {
         message={`¿Estás seguro de que deseas eliminar la membresía de "${deletingMember?.person?.display_name || 'este usuario'}" en esta iglesia? Esta acción lo removerá de la lista de personas y roles.`}
         onConfirm={() => deletingMember && deleteMutation.mutate(deletingMember.id)}
         onCancel={() => setDeletingMember(null)}
+      />
+
+      <InvitePersonDialog
+        open={showInviteDialog}
+        churchId={activeChurchId}
+        onClose={() => setShowInviteDialog(false)}
+        onSuccess={() => {
+          setShowInviteDialog(false)
+          queryClient.invalidateQueries({ queryKey: ['people', activeChurchId] })
+        }}
       />
     </div>
   )

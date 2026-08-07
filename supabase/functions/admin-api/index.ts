@@ -46,8 +46,8 @@ async function authorize(request: Request) {
     admin.from('platform_admins').select('user_id').eq('user_id', data.user.id).maybeSingle(),
   ])
   if (stateError || adminError) throw new ApiError('internal_error', 500)
-  if (state?.status !== 'active' || !platformAdmin) throw new ApiError('forbidden', 403)
-  return caller
+  if (state?.status !== 'active') throw new ApiError('forbidden', 403)
+  return { caller, user: data.user, isPlatformAdmin: !!platformAdmin }
 }
 
 async function requireMembershipSafety(membership: { id: string; church_id: string; role: string }) {
@@ -257,8 +257,21 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: headers(request) })
   if (request.method !== 'POST') return json(request, { ok: false, error: { code: 'bad_request', message: 'Método no permitido.' } }, 405)
   try {
-    const caller = await authorize(request)
-    const result = await dispatch(parseRequest(await request.json()), caller)
+    const { caller, user, isPlatformAdmin } = await authorize(request)
+    const reqBody = parseRequest(await request.json())
+
+    if (!isPlatformAdmin) {
+      if (reqBody.action === 'invite_user') {
+        const membership = await membershipFor(user.id, reqBody.church_id)
+        if (!membership || membership.role !== 'church_admin') {
+          throw new ApiError('forbidden', 403)
+        }
+      } else {
+        throw new ApiError('forbidden', 403)
+      }
+    }
+
+    const result = await dispatch(reqBody, caller)
     return json(request, { ok: true, data: result.data }, result.status)
   } catch (error) {
     return failed(request, error)

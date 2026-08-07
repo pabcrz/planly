@@ -115,7 +115,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2.5 bg-gray-50/40">
-            {catalog.map((role) => {
+            {Array.from(new Set([...catalog, ...selectedRoles])).map((role) => {
               const isSelected = selectedRoles.includes(role)
               return (
                 <label

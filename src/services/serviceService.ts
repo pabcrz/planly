@@ -48,7 +48,7 @@ const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'La hora debe tene
 
 const createServiceSchema = z.object({
   church_id: pgUuid(),
-  team_id: pgUuid('El equipo es obligatorio'),
+  team_id: pgUuid().nullish(),
   service_date: dateSchema,
   start_time: timeSchema,
   timezone: z.string().trim().min(1, 'La zona horaria es obligatoria').max(60),
@@ -58,7 +58,7 @@ const createServiceSchema = z.object({
 })
 
 const updateServiceSchema = z.object({
-  team_id: pgUuid().optional(),
+  team_id: pgUuid().nullish(),
   service_date: dateSchema.optional(),
   start_time: timeSchema.optional(),
   timezone: z.string().trim().min(1).max(60).optional(),

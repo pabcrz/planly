@@ -91,7 +91,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
     mutationFn: async () => {
       const actualType = serviceType === 'otro' ? customType.trim() || 'general' : serviceType
       const input = {
-        team_id: teamId,
+        team_id: teamId || null,
         service_type: actualType || 'general',
         service_date: serviceDate,
         start_time: startTime,
@@ -149,7 +149,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
         <div>
           <label htmlFor="service-team" className={labelClass}>
-            Equipo *
+            Equipo (Opcional)
           </label>
           {teamsLoading ? (
             <LoadingSpinner />
@@ -159,9 +159,8 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
               value={teamId}
               onChange={(e) => setTeamId(e.target.value)}
               className={inputClass}
-              required
             >
-              <option value="">Selecciona un equipo</option>
+              <option value="">Ningún equipo asignado</option>
               {teams?.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
