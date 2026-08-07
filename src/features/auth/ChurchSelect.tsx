@@ -1,6 +1,7 @@
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { Button } from '@/components/ui/Button'
 
 export function ChurchSelect() {
   const { memberships, refreshMemberships } = useAuth()
@@ -21,27 +22,29 @@ export function ChurchSelect() {
             <ul className="mt-3 flex flex-col gap-2">
               {memberships.map((membership) => (
                 <li key={membership.id}>
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => setActiveChurch(membership.church_id)}
-                    className="flex min-h-11 w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-left hover:border-indigo-300 hover:bg-indigo-50"
+                    className="flex w-full items-center justify-between text-left"
                   >
                     <span className="text-sm font-medium text-gray-900">{membership.church.name}</span>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                       {membership.role.replace('_', ' ')}
                     </span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => void refreshMemberships()}
-            className="mt-4 min-h-11 rounded-md px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+            className="mt-4"
           >
             Actualizar lista
-          </button>
+          </Button>
         </section>
 
       </div>

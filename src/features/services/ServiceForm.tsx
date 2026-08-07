@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
 import type { ServiceWithTeam } from '@/services/serviceService'
@@ -46,7 +48,6 @@ interface ServiceFormProps {
 
 export function ServiceForm({ open, churchId, service, onClose, onSaved }: ServiceFormProps) {
   const isEdit = !!service
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const queryClient = useQueryClient()
 
   const [teamId, setTeamId] = useState('')
@@ -65,13 +66,6 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
     queryFn: () => getTeams(churchId),
     enabled: open,
   })
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -97,7 +91,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
     mutationFn: async () => {
       const actualType = serviceType === 'otro' ? customType.trim() || 'general' : serviceType
       const input = {
-        team_id: teamId,
+        team_id: teamId || null,
         service_type: actualType || 'general',
         service_date: serviceDate,
         start_time: startTime,
@@ -136,10 +130,9 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
   const errorClass = 'mt-1 text-xs text-red-600'
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="w-full max-w-lg rounded-xl p-0 shadow-xl backdrop:bg-black/40 border border-gray-100"
+    <Modal
+      open={open}
+      onClose={onClose}
     >
       <form
         className="flex flex-col gap-5 p-6"
@@ -156,7 +149,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
         <div>
           <label htmlFor="service-team" className={labelClass}>
-            Equipo *
+            Equipo (Opcional)
           </label>
           {teamsLoading ? (
             <LoadingSpinner />
@@ -166,9 +159,8 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
               value={teamId}
               onChange={(e) => setTeamId(e.target.value)}
               className={inputClass}
-              required
             >
-              <option value="">Selecciona un equipo</option>
+              <option value="">Ningún equipo asignado</option>
               {teams?.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
@@ -306,23 +298,23 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
         {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
 
         <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="primary"
             disabled={mutation.isPending}
-            className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
             {mutation.isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear servicio'}
-          </button>
+          </Button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   )
 }
 

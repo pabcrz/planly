@@ -1,9 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { Users, Church, Music } from 'lucide-react'
 
 const links = [
-  { to: '/admin/users', label: 'Usuarios' },
-  { to: '/admin/churches', label: 'Iglesias' },
-  { to: '/admin/songs', label: 'Catálogo global' },
+  { to: '/admin/users', label: 'Usuarios', icon: Users },
+  { to: '/admin/churches', label: 'Iglesias', icon: Church },
+  { to: '/admin/songs', label: 'Catálogo global', icon: Music },
 ]
 
 export function AdminLayout() {
@@ -14,20 +15,24 @@ export function AdminLayout() {
         <h1 className="text-2xl font-bold text-gray-900">Administración de plataforma</h1>
         <p className="mt-1 text-sm text-gray-600">Gestiona usuarios, membresías e iglesias.</p>
       </header>
-      <nav aria-label="Administración" className="mb-6 flex gap-2 border-b border-gray-200">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) =>
-              `min-h-11 border-b-2 px-3 py-2 text-sm font-medium ${
-                isActive ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`
-            }
-          >
-            {link.label}
-          </NavLink>
-        ))}
+      <nav aria-label="Administración" className="mb-6 flex flex-wrap gap-2 border-b border-gray-200">
+        {links.map((link) => {
+          const Icon = link.icon
+          return (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                `flex items-center gap-2 min-h-11 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`
+              }
+            >
+              <Icon className="h-4 w-4" />
+              {link.label}
+            </NavLink>
+          )
+        })}
       </nav>
       <Outlet />
     </div>

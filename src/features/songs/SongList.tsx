@@ -6,6 +6,7 @@ import { getSongs } from '@/services/songService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Button } from '@/components/ui/Button'
 import { SongCard } from './SongCard'
 import { usePlatformAdmin } from '@/features/auth/platformAdmin'
 
@@ -136,36 +137,36 @@ export function SongList() {
             </ul>
             {totalPages > 1 ? (
               <div className="flex items-center justify-center gap-1.5 border-t border-gray-100 pt-6">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="inline-flex min-h-10 items-center px-3 py-1.5 rounded-md text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40 transition-colors"
                 >
                   « Anterior
-                </button>
+                </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
+                  <Button
                     key={page}
                     type="button"
+                    variant={currentPage === page ? 'primary' : 'ghost'}
+                    size="sm"
                     onClick={() => setCurrentPage(page)}
-                    className={`min-h-10 min-w-10 rounded-md text-xs font-semibold transition-colors ${
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className="min-w-10"
                   >
                     {page}
-                  </button>
+                  </Button>
                 ))}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="inline-flex min-h-10 items-center px-3 py-1.5 rounded-md text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40 transition-colors"
                 >
                   Siguiente »
-                </button>
+                </Button>
               </div>
             ) : null}
           </div>

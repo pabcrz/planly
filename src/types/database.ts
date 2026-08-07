@@ -233,7 +233,7 @@ export type Database = {
           service_date: string
           start_time: string
           status: Database["public"]["Enums"]["service_status"]
-          team_id: string
+          team_id: string | null
           timezone: string
         }
         Insert: {
@@ -247,7 +247,7 @@ export type Database = {
           service_date: string
           start_time: string
           status?: Database["public"]["Enums"]["service_status"]
-          team_id: string
+          team_id?: string | null
           timezone: string
         }
         Update: {
@@ -261,7 +261,7 @@ export type Database = {
           service_date?: string
           start_time?: string
           status?: Database["public"]["Enums"]["service_status"]
-          team_id?: string
+          team_id?: string | null
           timezone?: string
         }
         Relationships: [

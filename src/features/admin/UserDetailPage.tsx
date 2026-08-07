@@ -5,6 +5,7 @@ import type { ChurchRole } from '@/types/models'
 import { toastPromise, toastSuccess } from '@/lib/toast'
 import { adminApi } from '@/services/adminService'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { Button } from '@/components/ui/Button'
 
 const roles: ChurchRole[] = ['member', 'worship_director', 'church_admin']
 
@@ -50,9 +51,9 @@ export function UserDetailPage() {
   return (
     <div className="space-y-6">
       <header>
-        <button onClick={() => navigate('/admin/users')} className="text-sm font-semibold text-indigo-700 hover:underline">
+        <Button onClick={() => navigate('/admin/users')} variant="ghost" size="sm">
           ← Volver a usuarios
-        </button>
+        </Button>
         <h2 className="mt-2 text-xl font-bold text-gray-900">
           {user.email ?? 'Sin correo'} {isSelf ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 ml-2">Tu cuenta (Super Admin)</span> : null}
         </h2>
@@ -61,23 +62,23 @@ export function UserDetailPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         {user.status !== 'active' ? (
-          <button
+          <Button
             onClick={() => void mutate(adminApi.reactivateUser(user.id), 'Reactivando usuario...', 'Usuario reactivado.')}
-            className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+            variant="primary"
           >
             Reactivar usuario
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={() => !isSelf && void mutate(adminApi.deactivateUser(user.id, 'retain'), 'Desactivando usuario...', 'Usuario desactivado.')}
             disabled={isSelf}
             title={isSelf ? 'No puedes desactivarte a ti mismo como Super Admin.' : undefined}
-            className="min-h-11 rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            variant="danger"
           >
             {isSelf ? 'Desactivar (Prohibido a Super Admin)' : 'Desactivar usuario'}
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           onClick={async () => {
             try {
               const res = await toastPromise(adminApi.generateRecoveryLink(user.id), {
@@ -87,10 +88,10 @@ export function UserDetailPage() {
               setRecoveryLink(res.action_link)
             } catch {}
           }}
-          className="min-h-11 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          variant="secondary"
         >
           Generar enlace de recuperación de contraseña
-        </button>
+        </Button>
       </div>
 
       {recoveryLink ? (
@@ -105,23 +106,23 @@ export function UserDetailPage() {
               value={recoveryLink}
               className="min-h-11 min-w-64 flex-1 select-all rounded-md border border-indigo-300 bg-white px-3 py-2 text-xs font-mono text-gray-800"
             />
-            <button
+            <Button
               type="button"
               onClick={() => {
                 void navigator.clipboard.writeText(recoveryLink)
                 toastSuccess('Enlace copiado al portapapeles.')
               }}
-              className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+              variant="primary"
             >
               Copiar enlace
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => setRecoveryLink(null)}
-              className="min-h-11 rounded-md border border-indigo-300 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+              variant="secondary"
             >
               Cerrar
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -160,13 +161,13 @@ export function UserDetailPage() {
                         </option>
                       ))}
                     </select>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => void mutate(adminApi.revokeMembership(membership.id), 'Revocando membresía...', 'Membresía revocada.')}
-                      className="min-h-11 px-3 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      variant="danger"
                     >
                       Quitar de Iglesia
-                    </button>
+                    </Button>
                   </div>
                 </li>
               )
@@ -229,13 +230,13 @@ export function UserDetailPage() {
           </select>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={!churchId}
-          className="min-h-11 rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+          variant="primary"
         >
           + Añadir a Iglesia
-        </button>
+        </Button>
       </form>
     </div>
   )

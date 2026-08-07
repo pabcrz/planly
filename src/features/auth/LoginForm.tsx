@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signIn } from '@/services/authService'
 import { getErrorMessage } from '@/lib/toast'
+import { Button } from '@/components/ui/Button'
 
 const inputClass =
   'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
@@ -65,13 +66,13 @@ export function LoginForm() {
         />
       </label>
 
-      <button
+      <Button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        variant="primary"
       >
         {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
-      </button>
+      </Button>
 
       <p className="text-center text-sm text-gray-500">
         El acceso a Planly es solo por invitación. Solicita una invitación al administrador.

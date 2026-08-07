@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { getChurchSettings, updateChurchMusicalRoles } from '@/services/peopleService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -23,7 +25,6 @@ interface RoleConfigDialogProps {
 }
 
 export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const { activeChurchId } = useChurch()
   const queryClient = useQueryClient()
   const [roles, setRoles] = useState<string[]>([])
@@ -41,13 +42,9 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
   })
 
   useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (open && !dialog.open) {
-      dialog.showModal()
+    if (open) {
       setEditingIdx(null)
     }
-    if (!open && dialog.open) dialog.close()
   }, [open])
 
   useEffect(() => {
@@ -108,11 +105,7 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="w-full max-w-lg rounded-2xl p-0 shadow-2xl backdrop:bg-black/40 border border-gray-200 bg-white"
-    >
+    <Modal open={open} onClose={onClose}>
       <form onSubmit={handleSave} className="flex flex-col gap-5 p-6 max-h-[88vh] overflow-y-auto">
         <div>
           <h2 className="text-lg font-bold text-gray-900">
@@ -144,13 +137,14 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                   placeholder="Ej. Saxofón, Sonido, Traducción, Ujier..."
                   className={inputClass}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={addRole}
-                  className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="shrink-0 gap-1.5"
                 >
                   <Plus className="h-4 w-4" /> Agregar
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -179,22 +173,25 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                             className="min-h-9 flex-1 rounded border border-indigo-400 px-2.5 py-1 text-xs font-semibold text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             autoFocus
                           />
-                          <button
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => saveEdit(idx)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 font-bold text-xs hover:bg-emerald-200 transition-colors"
+                            className="gap-1"
                             title="Confirmar cambio"
                           >
                             <Check className="h-3.5 w-3.5" /> Guardar
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="icon"
                             onClick={() => setEditingIdx(null)}
-                            className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-gray-200 text-gray-700 font-medium text-xs hover:bg-gray-300 transition-colors"
                             title="Cancelar"
                           >
                             <X className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <>
@@ -203,23 +200,27 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
                             {role}
                           </span>
                           <div className="flex items-center gap-1">
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => startEdit(idx, role)}
-                              className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
+                              className="gap-1.5"
                               title="Editar nombre del rol"
                             >
                               <Pencil className="h-3.5 w-3.5" /> Editar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="danger"
+                              size="sm"
                               aria-label={`Eliminar rol ${role}`}
                               onClick={() => removeRole(idx)}
-                              className="inline-flex min-h-8 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
+                              className="gap-1.5"
                               title="Eliminar del catálogo"
                             >
                               <Trash2 className="h-3.5 w-3.5" /> Eliminar
-                            </button>
+                            </Button>
                           </div>
                         </>
                       )}
@@ -239,22 +240,22 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
         {error ? <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 font-medium">{error}</p> : null}
 
         <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4 mt-1">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="primary"
             disabled={mutation.isPending || isLoading}
-            className="min-h-11 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-all hover:shadow-md"
           >
             {mutation.isPending ? 'Guardando catálogo…' : 'Guardar cambios del catálogo'}
-          </button>
+          </Button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   )
 }

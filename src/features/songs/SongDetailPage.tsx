@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Button } from '@/components/ui/Button'
 import { SongVersions } from './SongVersions'
 import { VersionForm } from './VersionForm'
 import { MediaReferenceCard } from './MediaReferenceCard'
@@ -98,24 +99,24 @@ export function SongDetailPage() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             {!repertoireEntry ? (
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 onClick={() => adoptMutation.mutate()}
                 disabled={adoptMutation.isPending}
-                className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
               >
                 Añadir a biblioteca
-              </button>
+              </Button>
             ) : null}
             {repertoireEntry && isChurchAdmin ? (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => archiveMutation.mutate()}
                 disabled={archiveMutation.isPending}
-                className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors"
               >
                 Archivar
-              </button>
+              </Button>
             ) : null}
             {canEditSong ? (
               <>
@@ -125,13 +126,13 @@ export function SongDetailPage() {
                 >
                   Editar
                 </Link>
-                <button
+                <Button
                   type="button"
+                  variant="danger"
                   onClick={() => setConfirmingDelete(true)}
-                  className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                 >
                   Eliminar
-                </button>
+                </Button>
               </>
             ) : null}
           </div>
@@ -172,13 +173,13 @@ export function SongDetailPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Versiones y tonos</h2>
               {canEditSong && !showVersionForm ? (
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={() => setShowVersionForm(true)}
-                  className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors"
                 >
                   Agregar versión
-                </button>
+                </Button>
               ) : null}
             </div>
             {showVersionForm || editingVersion ? (

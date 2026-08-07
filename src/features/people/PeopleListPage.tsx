@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useChurch } from '@/app/providers/ChurchProvider'
+import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -11,6 +11,7 @@ import { deleteMembership, getChurchSettings, getPeople, updateMembershipRole } 
 import type { ChurchRole } from '@/types/models'
 import { RoleConfigDialog } from './RoleConfigDialog'
 import { PersonRolesDialog } from './PersonRolesDialog'
+import { InvitePersonDialog } from './InvitePersonDialog'
 import { Settings, UserPlus, Trash2 } from 'lucide-react'
 
 const DEFAULT_ROLES = [
@@ -35,6 +36,7 @@ export function PeopleListPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   
   const [showRoleConfig, setShowRoleConfig] = useState(false)
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [editingMemberRoles, setEditingMemberRoles] = useState<MembershipWithPerson | null>(null)
   const [deletingMember, setDeletingMember] = useState<MembershipWithPerson | null>(null)
 
@@ -153,23 +155,25 @@ export function PeopleListPage() {
         action={
           <div className="flex flex-wrap gap-3">
             {canManage ? (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setShowRoleConfig(true)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+                className="gap-2"
               >
                 <Settings className="h-4 w-4 text-gray-600" />
                 <span>Configurar Roles</span>
-              </button>
+              </Button>
             ) : null}
             {isChurchAdmin ? (
-              <Link
-                to="/invite"
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+              <Button
+                variant="primary"
+                onClick={() => setShowInviteDialog(true)}
+                className="gap-2"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>Invitar Persona</span>
-              </Link>
+              </Button>
             ) : null}
           </div>
         }
@@ -207,13 +211,14 @@ export function PeopleListPage() {
                 const count = counts.profileCounts[item.id] || 0
                 return (
                   <li key={item.id}>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setProfileFilter(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors font-medium ${
+                      className={`w-full justify-between ${
                         active
-                          ? 'bg-indigo-50 text-indigo-900 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? 'bg-indigo-50 text-indigo-900'
+                          : ''
                       }`}
                     >
                       <span className="truncate">{item.label}</span>
@@ -224,7 +229,7 @@ export function PeopleListPage() {
                       >
                         {count}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 )
               })}
@@ -237,13 +242,14 @@ export function PeopleListPage() {
             </span>
             <ul className="flex flex-col gap-1 text-sm max-h-72 overflow-y-auto pr-1">
               <li>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setRoleFilter('all')}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors font-medium ${
+                  className={`w-full justify-between ${
                     roleFilter === 'all'
-                      ? 'bg-indigo-50 text-indigo-900 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-indigo-50 text-indigo-900'
+                      : ''
                   }`}
                 >
                   <span>Todos los roles</span>
@@ -254,20 +260,21 @@ export function PeopleListPage() {
                   >
                     {counts.roleCounts.all || 0}
                   </span>
-                </button>
+                </Button>
               </li>
               {availableRoles.map((role) => {
                 const active = roleFilter === role
                 const count = counts.roleCounts[role] || 0
                 return (
                   <li key={role}>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => setRoleFilter(role)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors font-medium ${
+                      className={`w-full justify-between ${
                         active
-                          ? 'bg-indigo-50 text-indigo-900 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? 'bg-indigo-50 text-indigo-900'
+                          : ''
                       }`}
                     >
                       <span className="truncate mr-2">{role}</span>
@@ -278,7 +285,7 @@ export function PeopleListPage() {
                       >
                         {count}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 )
               })}
@@ -297,17 +304,19 @@ export function PeopleListPage() {
           {filteredPeople.length === 0 ? (
             <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
               <p className="text-sm font-medium text-gray-700">No se encontraron personas con los filtros seleccionados.</p>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setSearch('')
                   setProfileFilter('all')
                   setRoleFilter('all')
                 }}
-                className="mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="mt-4"
               >
                 Limpiar filtros
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100">
@@ -354,14 +363,16 @@ export function PeopleListPage() {
                         ))
                       )}
                       {canManage ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="primary"
+                          size="sm"
                           onClick={() => setEditingMemberRoles(m)}
                           aria-label={`Modificar roles del equipo para ${name}`}
-                          className="inline-flex items-center rounded-full bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-700 border border-indigo-200/60 transition-colors"
+                          className="rounded-full"
                         >
                           + Roles
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
 
@@ -390,14 +401,15 @@ export function PeopleListPage() {
                       )}
 
                       {isChurchAdmin ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="danger"
+                          size="icon"
                           aria-label="Eliminar miembro de la iglesia"
                           onClick={() => setDeletingMember(m)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   </div>
@@ -423,6 +435,16 @@ export function PeopleListPage() {
         message={`¿Estás seguro de que deseas eliminar la membresía de "${deletingMember?.person?.display_name || 'este usuario'}" en esta iglesia? Esta acción lo removerá de la lista de personas y roles.`}
         onConfirm={() => deletingMember && deleteMutation.mutate(deletingMember.id)}
         onCancel={() => setDeletingMember(null)}
+      />
+
+      <InvitePersonDialog
+        open={showInviteDialog}
+        churchId={activeChurchId}
+        onClose={() => setShowInviteDialog(false)}
+        onSuccess={() => {
+          setShowInviteDialog(false)
+          queryClient.invalidateQueries({ queryKey: ['people', activeChurchId] })
+        }}
       />
     </div>
   )

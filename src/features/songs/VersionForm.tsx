@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
 import { createVersion, updateVersion } from '@/services/songService'
+import { Button } from '@/components/ui/Button'
 import { ChordProEditor } from './ChordProEditor'
 import { KeyPicker } from './KeyPicker'
 import type { SongVersion } from '@/types/models'
@@ -105,20 +106,20 @@ export function VersionForm({ songId, onSaved, onCancel, version }: VersionFormP
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onCancel}
-          className="inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
         >
           Cancelar
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
+          variant="primary"
           disabled={mutation.isPending || !songKey || !versionName.trim() || !content.trim()}
-          className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
         >
           {mutation.isPending ? 'Guardando…' : version ? 'Guardar versión' : 'Agregar versión'}
-        </button>
+        </Button>
       </div>
     </form>
   )

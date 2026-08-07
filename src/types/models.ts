@@ -110,7 +110,7 @@ export interface Person {
 export interface Service {
   id: string
   church_id: string
-  team_id: string
+  team_id?: string | null
   service_date: string
   start_time: string
   timezone: string
@@ -119,6 +119,10 @@ export interface Service {
   director: string | null
   service_type: string | null
   created_at: string
+}
+
+export type NewService = Omit<Service, 'id' | 'created_at'> & {
+  team_id?: string | null
 }
 
 export interface Setlist {

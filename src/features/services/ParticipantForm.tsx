@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { getPeople } from '@/services/peopleService'
 import { addParticipant, addParticipantRole } from '@/services/serviceService'
@@ -30,7 +32,6 @@ interface ParticipantFormProps {
 
 export function ParticipantForm({ open, serviceId, participant, existingParticipants, onClose }: ParticipantFormProps) {
   const roleOnly = !!participant
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const queryClient = useQueryClient()
   const { activeChurchId } = useChurch()
 
@@ -44,13 +45,6 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
     queryFn: () => getPeople(activeChurchId!),
     enabled: open && !roleOnly && !!activeChurchId,
   })
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -106,10 +100,9 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40"
+    <Modal
+      open={open}
+      onClose={onClose}
     >
       <form
         className="flex flex-col gap-4 p-6"
@@ -158,19 +151,17 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
           <legend className="mb-1 block text-sm font-medium text-gray-700">Roles</legend>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((role) => (
-              <button
+              <Button
                 key={role}
                 type="button"
+                variant={selectedRoles.includes(role) ? 'primary' : 'secondary'}
+                size="sm"
+                className="rounded-full"
                 onClick={() => toggleRole(role)}
-                className={`inline-flex min-h-9 items-center rounded-full border px-3 text-sm font-medium ${
-                  selectedRoles.includes(role)
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
-                    : 'border-gray-300 text-gray-700 hover:border-indigo-300'
-                }`}
                 aria-pressed={selectedRoles.includes(role)}
               >
                 {role}
-              </button>
+              </Button>
             ))}
           </div>
           {selectedRoles.filter((r) => !SUGGESTED_ROLES.includes(r)).length > 0 ? (
@@ -178,14 +169,16 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
               {selectedRoles
                 .filter((r) => !SUGGESTED_ROLES.includes(r))
                 .map((role) => (
-                  <button
+                  <Button
                     key={role}
                     type="button"
+                    variant="primary"
+                    size="sm"
+                    className="rounded-full"
                     onClick={() => toggleRole(role)}
-                    className="inline-flex min-h-9 items-center rounded-full border border-indigo-600 bg-indigo-600 px-3 text-sm font-medium text-white"
                   >
                     {role} ✕
-                  </button>
+                  </Button>
                 ))}
             </div>
           ) : null}
@@ -203,35 +196,36 @@ export function ParticipantForm({ open, serviceId, participant, existingParticip
               placeholder="Rol personalizado"
               className={inputClass}
             />
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              className="shrink-0"
               onClick={addCustomRole}
-              className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-gray-300 px-3 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               Agregar
-            </button>
+            </Button>
           </div>
         </fieldset>
 
         {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
 
         <div className="flex justify-end gap-3">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="min-h-11 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="primary"
             disabled={!canSubmit || mutation.isPending}
-            className="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {mutation.isPending ? 'Guardando…' : roleOnly ? 'Agregar roles' : 'Agregar participante'}
-          </button>
+          </Button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   )
 }
