@@ -120,42 +120,82 @@ async function listChurches(request: Extract<AdminRequest, { action: 'list_churc
 }
 
 async function inviteUser(request: Extract<AdminRequest, { action: 'invite_user' }>) {
-  let user = await findUserByEmail(request.email)
+  const emailLower = request.email.toLowerCase().trim()
+  let user = await findUserByEmail(emailLower)
   let created = false
   let actionLink: string | null = null
+
   if (!user) {
     const redirectTo = `${Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5173'}/auth/invite`
-    const { data, error } = await admin.auth.admin.generateLink({ type: 'invite', email: request.email, options: { redirectTo } })
-    if (error || !data.user) throw new ApiError('auth_dependency_failed', 502)
-    user = data.user
-    actionLink = data.properties?.action_link ?? null
+    const { data, error } = await admin.auth.admin.generateLink({ type: 'invite', email: emailLower, options: { redirectTo } })
+    if (error || !data?.user) {
+      const { data: newUser, error: createErr } = await admin.auth.admin.createUser({ email: emailLower, email_confirm: true })
+      if (createErr || !newUser?.user) throw new ApiError('auth_dependency_failed', 502)
+      user = newUser.user
+    } else {
+      user = data.user
+      actionLink = data.properties?.action_link ?? null
+    }
     created = true
+  } else {
+    try {
+      const redirectTo = `${Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5173'}/auth/invite`
+      const { data } = await admin.auth.admin.generateLink({ type: 'recovery', email: emailLower, options: { redirectTo } })
+      if (data?.properties?.action_link) {
+        actionLink = data.properties.action_link
+      }
+    } catch {
+      // Ignore link generation error for existing user
+    }
   }
+
   const existing = await membershipFor(user.id, request.church_id)
   if (existing) {
-    if (existing.role !== request.role) throw new ApiError('conflict', 409)
-    const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
-    return { status: 200, data: { user_id: user.id, email: request.email, status: state?.status ?? 'pending', membership: existing, invitation_sent: false, created: false, action_link: null } }
-  }
-  const { data: state, error: stateError } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
-  if (stateError) throw new ApiError('internal_error', 500)
-  if (!state) {
-    const { error } = await admin.from('user_access_state').insert({ user_id: user.id, status: 'pending' })
-    if (error) throw new ApiError('internal_error', 500)
-  }
-  const { data: membership, error: membershipError } = await admin.from('church_memberships').insert({ user_id: user.id, church_id: request.church_id, role: request.role }).select('id,user_id,church_id,role,joined_at').single()
-  if (membershipError) {
-    if (created && !user.email_confirmed_at) {
-      const { count } = await admin.from('church_memberships').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-      if ((count ?? 0) === 0) {
-        const { error } = await admin.auth.admin.deleteUser(user.id)
-        if (!error) await admin.from('user_access_state').delete().eq('user_id', user.id).eq('status', 'pending')
-        else throw new ApiError('internal_error', 500, true)
-      } else throw new ApiError('internal_error', 500, true)
+    if (existing.role !== request.role) {
+      await admin.from('church_memberships').update({ role: request.role }).eq('id', existing.id)
     }
+    const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
+    return {
+      status: 200,
+      data: {
+        user_id: user.id,
+        email: emailLower,
+        status: state?.status ?? 'active',
+        membership: { ...existing, role: request.role },
+        invitation_sent: false,
+        created: false,
+        action_link: actionLink,
+      },
+    }
+  }
+
+  const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
+  if (!state) {
+    await admin.from('user_access_state').upsert({ user_id: user.id, status: 'active' })
+  }
+
+  const { data: membership, error: membershipError } = await admin
+    .from('church_memberships')
+    .insert({ user_id: user.id, church_id: request.church_id, role: request.role })
+    .select('id,user_id,church_id,role,joined_at')
+    .single()
+
+  if (membershipError) {
     throw new ApiError('internal_error', 500)
   }
-  return { status: created ? 201 : 200, data: { user_id: user.id, email: request.email, status: state?.status ?? 'pending', membership, invitation_sent: created, created, action_link: actionLink } }
+
+  return {
+    status: created ? 201 : 200,
+    data: {
+      user_id: user.id,
+      email: emailLower,
+      status: state?.status ?? 'active',
+      membership,
+      invitation_sent: true,
+      created,
+      action_link: actionLink,
+    },
+  }
 }
 
 async function generateRecoveryLink(request: Extract<AdminRequest, { action: 'generate_recovery_link' }>) {
