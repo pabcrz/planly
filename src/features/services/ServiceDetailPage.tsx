@@ -197,7 +197,7 @@ export function ServiceDetailPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 font-medium">Horario y Equipo</p>
-                    <p className="text-sm font-bold text-gray-900">{formatServiceTime(service.start_time)} hrs · {service.team.name}</p>
+                    <p className="text-sm font-bold text-gray-900">{formatServiceTime(service.start_time)} hrs · {service.team?.name ?? 'Ninguno'}</p>
                   </div>
                 </div>
               </div>

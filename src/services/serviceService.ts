@@ -21,7 +21,7 @@ export interface ServiceFilters {
   status?: ServiceStatus
 }
 
-export type ServiceWithTeam = Service & { team: Pick<Team, 'id' | 'name'> }
+export type ServiceWithTeam = Service & { team: Pick<Team, 'id' | 'name'> | null }
 export type SetlistItemWithSong = SetlistItem & {
   song: Pick<Song, 'id' | 'title' | 'author'>
   version: Pick<SongVersion, 'id' | 'version_name' | 'key'>

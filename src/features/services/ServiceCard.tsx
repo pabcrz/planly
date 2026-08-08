@@ -33,7 +33,7 @@ export function ServiceCard({ service }: { service: ServiceWithTeam }) {
           <span className="flex items-center gap-1.5 text-gray-700">
             <Users className="h-3.5 w-3.5 text-gray-400" />
             <span className="text-gray-400">Equipo:</span> 
-            <span className="font-semibold text-gray-800">{service.team.name}</span>
+            <span className="font-semibold text-gray-800">{service.team?.name ?? 'Ninguno'}</span>
           </span>
           {service.director ? (
             <span className="flex items-center gap-1.5 text-gray-700">
