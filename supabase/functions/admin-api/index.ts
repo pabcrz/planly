@@ -244,9 +244,36 @@ async function dispatch(request: AdminRequest, caller: ReturnType<typeof createC
       return { status: 201, data: { church, founding_membership: membership } }
     }
     case 'delete_church': {
-      const { error } = await admin.from('churches').delete().eq('id', request.church_id)
+      const churchId = request.church_id
+      // 1. Get services
+      const { data: services } = await admin.from('services').select('id').eq('church_id', churchId)
+      if (services?.length) {
+        const serviceIds = services.map((s) => s.id)
+        const { data: setlists } = await admin.from('setlists').select('id').in('service_id', serviceIds)
+        if (setlists?.length) {
+          const setlistIds = setlists.map((sl) => sl.id)
+          await admin.from('setlist_items').delete().in('setlist_id', setlistIds)
+          await admin.from('setlists').delete().in('id', setlistIds)
+        }
+        await admin.from('service_participants').delete().in('service_id', serviceIds)
+        await admin.from('services').delete().eq('church_id', churchId)
+      }
+      // 2. Clean teams, repertoire, and variants
+      const { data: teams } = await admin.from('teams').select('id').eq('church_id', churchId)
+      if (teams?.length) {
+        const teamIds = teams.map((t) => t.id)
+        await admin.from('team_members').delete().in('team_id', teamIds)
+        await admin.from('teams').delete().eq('church_id', churchId)
+      }
+      await admin.from('song_variants').delete().eq('church_id', churchId)
+      await admin.from('church_repertoire').delete().eq('church_id', churchId)
+      await admin.from('songs').delete().eq('church_id', churchId)
+      await admin.from('church_memberships').delete().eq('church_id', churchId)
+
+      // 3. Delete church
+      const { error } = await admin.from('churches').delete().eq('id', churchId)
       if (error) throw new ApiError('internal_error', 500)
-      return { status: 200, data: { church_id: request.church_id, deleted: true } }
+      return { status: 200, data: { church_id: churchId, deleted: true } }
     }
     case 'generate_recovery_link': return await generateRecoveryLink(request)
   }

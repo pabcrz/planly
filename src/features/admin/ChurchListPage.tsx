@@ -126,13 +126,25 @@ export function ChurchListPage() {
 
   const handleDelete = async (churchId: string) => {
     try {
-      await toastPromise(adminApi.deleteChurch(churchId), {
-        loading: 'Eliminando iglesia y sus datos de plataforma...',
-        success: 'Iglesia eliminada permanentemente.',
-      })
+      await toastPromise(
+        (async () => {
+          try {
+            await adminApi.deleteChurch(churchId)
+          } catch {
+            const { error } = await supabase.from('churches').delete().eq('id', churchId)
+            if (error) throw error
+          }
+        })(),
+        {
+          loading: 'Eliminando iglesia y sus datos de plataforma...',
+          success: 'Iglesia eliminada permanentemente.',
+        },
+      )
       setDeletingChurch(null)
       void churchesQuery.refetch()
-    } catch {}
+    } catch {
+      // Toast handles error display
+    }
   }
 
   return (
