@@ -261,12 +261,7 @@ Deno.serve(async (request) => {
     const reqBody = parseRequest(await request.json())
 
     if (!isPlatformAdmin) {
-      if (reqBody.action === 'invite_user') {
-        const membership = await membershipFor(user.id, reqBody.church_id)
-        if (!membership || membership.role !== 'church_admin') {
-          throw new ApiError('forbidden', 403)
-        }
-      } else {
+      if (reqBody.action === 'deactivate_user' || reqBody.action === 'reactivate_user') {
         throw new ApiError('forbidden', 403)
       }
     }

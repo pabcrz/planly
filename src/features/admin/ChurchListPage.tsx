@@ -28,15 +28,20 @@ function EditChurchModal({ church, onClose, onUpdated }: { church: Church | null
     e.preventDefault()
     setSaving(true)
     try {
-      const { error } = await supabase.from('churches').update({ name: name.trim(), slug: slug.trim() }).eq('id', church.id)
-      if (error) {
-        throw error
-      }
-      toastPromise(Promise.resolve(), { loading: '', success: 'Iglesia actualizada.' })
+      await toastPromise(
+        (async () => {
+          const { error } = await supabase
+            .from('churches')
+            .update({ name: name.trim(), slug: slug.trim() })
+            .eq('id', church.id)
+          if (error) throw error
+        })(),
+        { loading: 'Guardando cambios...', success: 'Iglesia actualizada exitosamente.' },
+      )
       onUpdated()
       onClose()
     } catch {
-      // Handled
+      // Error toast shown
     } finally {
       setSaving(false)
     }
