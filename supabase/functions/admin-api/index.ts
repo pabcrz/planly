@@ -119,14 +119,35 @@ async function listChurches(request: Extract<AdminRequest, { action: 'list_churc
   }
 }
 
-async function inviteUser(request: Extract<AdminRequest, { action: 'invite_user' }>) {
+function buildCleanInviteUrl(req: Request, rawActionLink: string | null | undefined, tokenHash: string | null | undefined, type: 'invite' | 'recovery'): string | null {
+  const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
+  if (tokenHash) {
+    return `${origin}/auth/invite?token=${tokenHash}&type=${type}`
+  }
+  if (rawActionLink) {
+    try {
+      const url = new URL(rawActionLink)
+      const token = url.searchParams.get('token') || url.searchParams.get('token_hash')
+      if (token) {
+        return `${origin}/auth/invite?token=${token}&type=${type}`
+      }
+    } catch {
+      // Fallback
+    }
+    return rawActionLink
+  }
+  return null
+}
+
+async function inviteUser(req: Request, request: Extract<AdminRequest, { action: 'invite_user' }>) {
   const emailLower = request.email.toLowerCase().trim()
   let user = await findUserByEmail(emailLower)
   let created = false
   let actionLink: string | null = null
 
   if (!user) {
-    const redirectTo = `${Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5173'}/auth/invite`
+    const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
+    const redirectTo = `${origin}/auth/invite`
     const { data, error } = await admin.auth.admin.generateLink({ type: 'invite', email: emailLower, options: { redirectTo } })
     if (error || !data?.user) {
       const { data: newUser, error: createErr } = await admin.auth.admin.createUser({ email: emailLower, email_confirm: true })
@@ -134,15 +155,16 @@ async function inviteUser(request: Extract<AdminRequest, { action: 'invite_user'
       user = newUser.user
     } else {
       user = data.user
-      actionLink = data.properties?.action_link ?? null
+      actionLink = buildCleanInviteUrl(req, data.properties?.action_link, (data.properties as any)?.hashed_token, 'invite')
     }
     created = true
   } else {
     try {
-      const redirectTo = `${Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5173'}/auth/invite`
+      const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
+      const redirectTo = `${origin}/auth/invite`
       const { data } = await admin.auth.admin.generateLink({ type: 'recovery', email: emailLower, options: { redirectTo } })
-      if (data?.properties?.action_link) {
-        actionLink = data.properties.action_link
+      if (data?.properties) {
+        actionLink = buildCleanInviteUrl(req, data.properties.action_link, (data.properties as any)?.hashed_token, 'recovery')
       }
     } catch {
       // Ignore link generation error for existing user
@@ -229,11 +251,11 @@ async function deactivateUser(request: Extract<AdminRequest, { action: 'deactiva
   return { user_id: request.user_id, status: 'inactive', revoked_membership_ids: revoked.map((membership) => membership.id), refresh_sessions_revoked: false }
 }
 
-async function dispatch(request: AdminRequest, caller: ReturnType<typeof createClient>) {
+async function dispatch(req: Request, request: AdminRequest, caller: ReturnType<typeof createClient>) {
   switch (request.action) {
     case 'list_users': return { status: 200, data: await listUsers(request) }
     case 'list_churches': return { status: 200, data: await listChurches(request) }
-    case 'invite_user': return await inviteUser(request)
+    case 'invite_user': return await inviteUser(req, request)
     case 'deactivate_user': return { status: 200, data: await deactivateUser(request) }
     case 'reactivate_user': {
       const { data: user, error: userError } = await admin.auth.admin.getUserById(request.user_id)
@@ -333,7 +355,7 @@ Deno.serve(async (request) => {
       }
     }
 
-    const result = await dispatch(reqBody, caller)
+    const result = await dispatch(request, reqBody, caller)
     return json(request, { ok: true, data: result.data }, result.status)
   } catch (error) {
     return failed(request, error)

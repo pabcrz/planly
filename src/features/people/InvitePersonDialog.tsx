@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ChurchRole } from '@/types/models'
 import { adminApi } from '@/services/adminService'
-import { toastPromise } from '@/lib/toast'
+import { toastPromise, toastSuccess } from '@/lib/toast'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 
@@ -64,15 +64,30 @@ export function InvitePersonDialog({ open, churchId, onClose, onSuccess }: Invit
     <Modal open={open} onClose={handleClose} title="Invitar persona">
       {generatedLink ? (
         <div className="space-y-4">
-          <p className="text-sm text-gray-700">
-            Debido a las políticas antispam (o si el SMTP no está configurado), se generó un enlace manual de invitación. Envíale este enlace a la persona:
+          <p className="text-sm font-semibold text-gray-900">Enlace de invitación generado:</p>
+          <p className="text-xs text-gray-600">
+            Copia este enlace directo y envíaselo al usuario por WhatsApp o correo para que active su cuenta:
           </p>
-          <div className="rounded border bg-gray-50 p-2 text-sm break-all">
-            {generatedLink}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              readOnly
+              value={generatedLink}
+              className="min-h-11 min-w-64 flex-1 select-all rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-mono text-gray-800"
+            />
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                void navigator.clipboard.writeText(generatedLink)
+                toastSuccess('Enlace de invitación copiado al portapapeles.')
+              }}
+            >
+              Copiar enlace
+            </Button>
           </div>
           <div className="flex justify-end pt-4">
-            <Button variant="primary" onClick={onSuccess}>
-              Entendido
+            <Button variant="secondary" onClick={onSuccess}>
+              Cerrar
             </Button>
           </div>
         </div>
