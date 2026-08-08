@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
 import { Button } from '@/components/ui/Button'
@@ -8,6 +8,8 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
 import type { ServiceWithTeam } from '@/services/serviceService'
 import type { Service, ServiceStatus } from '@/types/models'
+
+const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
 type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
@@ -45,8 +47,12 @@ interface ServiceFormProps {
 }
 
 export function ServiceForm({ open, churchId, service, onClose, onSaved }: ServiceFormProps) {
+  const { activeMembership } = useChurch()
+  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
   const isEdit = !!service
   const queryClient = useQueryClient()
+
+  if (!canManage) return null
 
   const [teamId, setTeamId] = useState('')
   const [serviceType, setServiceType] = useState('general')
@@ -290,8 +296,13 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 // component can edit in place from the detail page.
 export function NewServicePage() {
   const navigate = useNavigate()
-  const { activeChurchId } = useChurch()
-  if (!activeChurchId) return null
+  const { activeChurchId, activeMembership } = useChurch()
+  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+
+  if (!activeChurchId || !canManage) {
+    return <Navigate to="/services" replace />
+  }
+
   return (
     <ServiceForm
       open
