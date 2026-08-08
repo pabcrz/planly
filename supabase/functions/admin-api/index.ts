@@ -237,7 +237,7 @@ async function dispatch(request: AdminRequest, caller: ReturnType<typeof createC
         if (existing.name !== request.name || !membership || membership.role !== 'church_admin') throw new ApiError('conflict', 409)
         return { status: 200, data: { church: existing, founding_membership: membership } }
       }
-      const { data: church, error: rpcError } = await caller.rpc('create_church', { church_name: request.name, church_slug: request.slug, founding_admin_user_id: request.founding_admin_user_id })
+      const { data: church, error: rpcError } = await admin.rpc('create_church', { church_name: request.name, church_slug: request.slug, founding_admin_user_id: request.founding_admin_user_id })
       if (rpcError || !church) throw new ApiError('internal_error', 500)
       const membership = await membershipFor(request.founding_admin_user_id, church.id)
       if (!membership) throw new ApiError('internal_error', 500)

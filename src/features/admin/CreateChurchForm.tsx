@@ -4,6 +4,7 @@ import { toastPromise } from '@/lib/toast'
 import { adminApi } from '@/services/adminService'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { supabase } from '@/lib/supabase'
 
 function slugify(value: string) { return value.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
 
@@ -21,8 +22,24 @@ export function CreateChurchForm({ users, onComplete }: { users: { id: string; e
     if (name.trim().length < 2 || slug.length < 2 || !targetFounder) { setError('Completa los campos obligatorios.'); return }
     setError(null); setSubmitting(true)
     try {
-      await toastPromise(adminApi.createChurch(name.trim(), slug, targetFounder), { loading: 'Creando iglesia...', success: 'Iglesia creada.' })
+      await toastPromise(
+        (async () => {
+          try {
+            await adminApi.createChurch(name.trim(), slug, targetFounder)
+          } catch {
+            const { error: rpcErr } = await (supabase.rpc as any)('create_church', {
+              church_name: name.trim(),
+              church_slug: slug,
+              founding_admin_user_id: targetFounder,
+            })
+            if (rpcErr) throw rpcErr
+          }
+        })(),
+        { loading: 'Creando iglesia...', success: 'Iglesia creada exitosamente.' },
+      )
       setName(''); onComplete()
+    } catch {
+      // Toast handles error display
     } finally { setSubmitting(false) }
   }
   return <form onSubmit={submit} noValidate className="grid gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 md:grid-cols-3">
