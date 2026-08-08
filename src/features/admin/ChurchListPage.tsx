@@ -1,16 +1,81 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { adminApi } from '@/services/adminService'
 import { CreateChurchForm } from './CreateChurchForm'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Modal } from '@/components/ui/Modal'
+import { supabase } from '@/lib/supabase'
 import { toastPromise } from '@/lib/toast'
 import type { Church } from '@/types/models'
-import { Users, Trash2 } from 'lucide-react'
+import { Users, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+
+function EditChurchModal({ church, onClose, onUpdated }: { church: Church | null; onClose: () => void; onUpdated: () => void }) {
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (church) {
+      setName(church.name)
+      setSlug(church.slug)
+    }
+  }, [church])
+
+  if (!church) return null
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('churches').update({ name: name.trim(), slug: slug.trim() }).eq('id', church.id)
+      if (error) {
+        throw error
+      }
+      toastPromise(Promise.resolve(), { loading: '', success: 'Iglesia actualizada.' })
+      onUpdated()
+      onClose()
+    } catch {
+      // Handled
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal open={!!church} onClose={onClose} title="Editar Iglesia">
+      <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la iglesia</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className="w-full min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" variant="primary" disabled={saving}>{saving ? 'Guardando...' : 'Guardar Cambios'}</Button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
 
 export function ChurchListPage() {
   const [page, setPage] = useState(1)
   const [deletingChurch, setDeletingChurch] = useState<Church | null>(null)
+  const [editingChurch, setEditingChurch] = useState<Church | null>(null)
 
   const churchesQuery = useQuery({ queryKey: ['admin-churches', page], queryFn: () => adminApi.listChurches(page, 25) })
   const usersQuery = useQuery({ queryKey: ['admin-users'], queryFn: () => adminApi.listUsers(1, 100) })
@@ -71,13 +136,23 @@ export function ChurchListPage() {
                   </span>
                   <Button
                     type="button"
+                    aria-label={`Editar ${church.name}`}
+                    onClick={() => setEditingChurch(church)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span>Editar</span>
+                  </Button>
+                  <Button
+                    type="button"
                     aria-label={`Eliminar ${church.name}`}
                     onClick={() => setDeletingChurch(church)}
                     variant="danger"
                     size="sm"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span>Eliminar Iglesia</span>
+                    <span>Eliminar</span>
                   </Button>
                 </div>
               </li>
@@ -105,6 +180,12 @@ export function ChurchListPage() {
           </Button>
         </div>
       </section>
+
+      <EditChurchModal
+        church={editingChurch}
+        onClose={() => setEditingChurch(null)}
+        onUpdated={() => void churchesQuery.refetch()}
+      />
 
       <ConfirmDialog
         open={!!deletingChurch}

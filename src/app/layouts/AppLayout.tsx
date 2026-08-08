@@ -5,9 +5,10 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
-import { LayoutDashboard, Music, Users, Shield, CalendarDays, UserCircle } from 'lucide-react'
+import { LayoutDashboard, Music, Users, Shield, CalendarDays, UserCircle, Building2 } from 'lucide-react'
+import { usePlatformAdmin } from '@/features/auth/platformAdmin'
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { to: '/dashboard', label: 'Tablero', icon: LayoutDashboard },
   { to: '/songs', label: 'Canciones', icon: Music },
   { to: '/people', label: 'Personas', icon: Users },
@@ -26,6 +27,14 @@ export function AppLayout() {
   const navigate = useNavigate()
   const { memberships, signOut } = useAuth()
   const { activeChurchId, setActiveChurch } = useChurch()
+  const { data: isPlatformAdmin } = usePlatformAdmin()
+
+  const navItems = isPlatformAdmin
+    ? [
+        ...BASE_NAV_ITEMS,
+        { to: '/admin/churches', label: 'Administrar Iglesias', icon: Building2 },
+      ]
+    : BASE_NAV_ITEMS
 
   async function handleSignOut() {
     await signOut()
@@ -64,7 +73,7 @@ export function AppLayout() {
 
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col gap-1 border-r bg-white px-3 pt-20 md:flex">
         <nav aria-label="Main navigation" className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon
             return (
               <NavLink key={item.to} to={item.to} className={navLinkClass}>
@@ -88,7 +97,7 @@ export function AppLayout() {
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-10 flex justify-around border-t bg-white py-1 md:hidden"
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
