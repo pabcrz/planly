@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ChurchSelect } from '@/features/auth/ChurchSelect'
 import { getSongs } from '@/services/songService'
-import { getTeams } from '@/services/teamService'
 import { getPeople } from '@/services/peopleService'
 import { getServices } from '@/services/serviceService'
 import { ServiceCard } from '@/features/services/ServiceCard'
@@ -19,12 +18,6 @@ export function DashboardPage() {
   const { data: songs, isLoading: songsLoading } = useQuery({
     queryKey: ['songs', activeChurchId],
     queryFn: () => getSongs(activeChurchId!),
-    enabled: !!activeChurchId,
-  })
-
-  const { data: teams, isLoading: teamsLoading } = useQuery({
-    queryKey: ['teams', activeChurchId],
-    queryFn: () => getTeams(activeChurchId!),
     enabled: !!activeChurchId,
   })
 
@@ -51,11 +44,10 @@ export function DashboardPage() {
 
   if (!activeChurchId) return <ChurchSelect />
 
-  const isLoading = songsLoading || teamsLoading || peopleLoading || servicesLoading
+  const isLoading = songsLoading || peopleLoading || servicesLoading
 
   const statCards = [
     { label: 'Canciones', value: songs?.length ?? 0, hint: 'Catálogo de alabanza', link: '/songs' },
-    { label: 'Equipos', value: teams?.length ?? 0, hint: 'Equipos ministeriales', link: '/teams' },
     { label: 'Personas', value: people?.length ?? 0, hint: 'Miembros en el roster', link: '/people' },
     { label: 'Próximos Servicios', value: upcomingServices.length, hint: 'Servicios programados', link: '/services' },
   ]
@@ -75,7 +67,7 @@ export function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {statCards.map((card) => (
               <Link
                 key={card.label}
