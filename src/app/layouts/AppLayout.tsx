@@ -5,15 +5,14 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
-import { LayoutDashboard, Music, Users, Shield, CalendarDays, UserCircle, Building2 } from 'lucide-react'
+import { LayoutDashboard, Music, Users, CalendarDays, UserCircle, Building2 } from 'lucide-react'
 import { usePlatformAdmin } from '@/features/auth/platformAdmin'
 
 const BASE_NAV_ITEMS = [
   { to: '/dashboard', label: 'Tablero', icon: LayoutDashboard },
+  { to: '/services', label: 'Servicios', icon: CalendarDays },
   { to: '/songs', label: 'Canciones', icon: Music },
   { to: '/people', label: 'Personas', icon: Users },
-  { to: '/teams', label: 'Equipos', icon: Shield },
-  { to: '/services', label: 'Servicios', icon: CalendarDays },
   { to: '/profile', label: 'Perfil', icon: UserCircle },
 ]
 

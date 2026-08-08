@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
 import type { ServiceWithTeam } from '@/services/serviceService'
-import { getTeams } from '@/services/teamService'
 import type { Service, ServiceStatus } from '@/types/models'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
@@ -60,12 +58,6 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
   const [status, setStatus] = useState<ServiceStatus>('planned')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
-
-  const { data: teams, isLoading: teamsLoading } = useQuery({
-    queryKey: ['teams', churchId],
-    queryFn: () => getTeams(churchId),
-    enabled: open,
-  })
 
   useEffect(() => {
     if (!open) return
@@ -146,30 +138,6 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
         <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
           {isEdit ? 'Editar servicio' : 'Nuevo servicio'}
         </h2>
-
-        <div>
-          <label htmlFor="service-team" className={labelClass}>
-            Equipo (Opcional)
-          </label>
-          {teamsLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <select
-              id="service-team"
-              value={teamId}
-              onChange={(e) => setTeamId(e.target.value)}
-              className={inputClass}
-            >
-              <option value="">Ningún equipo asignado</option>
-              {teams?.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
-          )}
-          {fieldErrors.team_id ? <p className={errorClass}>{fieldErrors.team_id}</p> : null}
-        </div>
 
         <div>
           <label htmlFor="service-type" className={labelClass}>
