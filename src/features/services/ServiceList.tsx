@@ -118,11 +118,11 @@ export function ServiceList() {
                       type="button"
                       variant="ghost"
                       onClick={() => setStatusFilter(item.id)}
-                      className={`w-full justify-between ${
+                      className={`w-full justify-between text-left ${
                         active ? 'bg-indigo-50 text-indigo-900 font-semibold' : ''
                       }`}
                     >
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate text-left">{item.label}</span>
                       <span
                         className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full font-bold ${
                           active ? 'bg-indigo-200 text-indigo-800' : 'bg-gray-100 text-gray-600'
