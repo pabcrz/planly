@@ -11,7 +11,6 @@ import type {
   SetlistItem,
   Song,
   SongVersion,
-  Team,
 } from '@/types/models'
 
 export interface ServiceFilters {

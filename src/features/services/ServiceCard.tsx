@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Clock, Users, UserCheck, ChevronRight } from 'lucide-react'
+import { Clock, UserCheck, ChevronRight } from 'lucide-react'
 import type { Service } from '@/types/models'
 import { ServiceStatusBadge } from './ServiceStatusBadge'
 import { formatServiceDay, formatServiceDateOnly, formatServiceTime } from './serviceFormat'

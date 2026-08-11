@@ -43,7 +43,7 @@ export function SetlistPage() {
     <div>
       <PageHeader
         title={service ? `${formatServiceDate(service.service_date)} · ${formatServiceTime(service.start_time)}` : 'Setlist'}
-        description={service ? service.team.name : undefined}
+        description={service ? service.service_type : undefined}
         action={
           <Link
             to={service ? `/services/${service.id}` : '/services'}
