@@ -7,12 +7,12 @@ import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
 import { getChurchSettings, updateChurchServiceTypes } from '@/services/peopleService'
-import type { ServiceWithTeam } from '@/services/serviceService'
+
 import type { Service, ServiceStatus } from '@/types/models'
 
 const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
-type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
+type FieldErrors = Partial<Record<'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
 function toFieldErrors(error: unknown): FieldErrors | null {
   if (!(error instanceof ZodError)) return null
@@ -40,7 +40,7 @@ interface ServiceFormProps {
   open: boolean
   churchId: string
   /** When provided the form edits this service; otherwise it creates a new one. */
-  service?: ServiceWithTeam | null
+  service?: Service | null
   onClose: () => void
   onSaved?: (service: Service) => void
 }
@@ -60,7 +60,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
   })
   const configuredTypes = settings?.service_types && settings.service_types.length > 0 ? settings.service_types : ['general']
 
-  const [teamId, setTeamId] = useState('')
+
   const [serviceType, setServiceType] = useState('general')
   const [customType, setCustomType] = useState('')
   const [director, setDirector] = useState('')
@@ -73,7 +73,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
   useEffect(() => {
     if (!open) return
-    setTeamId(service?.team_id ?? '')
+
     const currentType = service?.service_type ?? 'general'
     if (configuredTypes.includes(currentType)) {
       setServiceType(currentType)
@@ -106,7 +106,6 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
       }
 
       const input = {
-        team_id: teamId || null,
         service_type: actualType,
         service_date: serviceDate,
         start_time: startTime,

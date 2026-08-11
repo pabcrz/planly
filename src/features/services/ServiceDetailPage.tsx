@@ -196,8 +196,8 @@ export function ServiceDetailPage() {
                     <Clock className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium">Horario y Equipo</p>
-                    <p className="text-sm font-bold text-gray-900">{formatServiceTime(service.start_time)} hrs · {service.team?.name ?? 'Ninguno'}</p>
+                    <p className="text-xs text-gray-400 font-medium">Horario</p>
+                    <p className="text-sm font-bold text-gray-900">{formatServiceTime(service.start_time)} hrs</p>
                   </div>
                 </div>
               </div>
@@ -253,7 +253,7 @@ export function ServiceDetailPage() {
                 </div>
                 <div className="flex items-baseline justify-between">
                   <span className="text-2xl font-black text-gray-900">{participants?.length ?? 0}</span>
-                  <span className="text-xs text-gray-500 font-medium">miembros en el equipo</span>
+                  <span className="text-xs text-gray-500 font-medium">participantes en el servicio</span>
                 </div>
               </div>
               <Button

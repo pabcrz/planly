@@ -25,12 +25,8 @@ const SongDetailPage = lazy(() =>
 const PeopleListPage = lazy(() =>
   import('@/features/people/PeopleListPage').then((m) => ({ default: m.PeopleListPage })),
 )
-const TeamListPage = lazy(() => import('@/features/teams/TeamList').then((m) => ({ default: m.TeamList })))
-const TeamDetailPage = lazy(() =>
-  import('@/features/teams/TeamDetailPage').then((m) => ({ default: m.TeamDetailPage })),
-)
 const ProfilePage = lazy(() =>
-  import('@/features/teams/ProfileForm').then((m) => ({ default: m.ProfileForm })),
+  import('@/features/people/ProfilePage').then((m) => ({ default: m.ProfilePage })),
 )
 const ServiceListPage = lazy(() =>
   import('@/features/services/ServiceList').then((m) => ({ default: m.ServiceList })),
@@ -49,6 +45,9 @@ const PublicSetlistPage = lazy(() =>
 )
 const PublicLyricsPage = lazy(() =>
   import('@/features/public-views/PublicLyrics').then((m) => ({ default: m.PublicLyrics })),
+)
+const HomePage = lazy(() =>
+  import('@/features/public-views/HomePage').then((m) => ({ default: m.HomePage })),
 )
 
 export const router = createBrowserRouter([
@@ -76,8 +75,7 @@ export const router = createBrowserRouter([
           { path: '/songs/:id', element: <SongDetailPage /> },
           { path: '/songs/:id/edit', element: <SongFormPage /> },
           { path: '/people', element: <PeopleListPage /> },
-          { path: '/teams', element: <TeamListPage /> },
-          { path: '/teams/:id', element: <TeamDetailPage /> },
+
           { path: '/services', element: <ServiceListPage /> },
           { path: '/services/new', element: <ServiceNewPage /> },
           { path: '/services/:id', element: <ServiceDetailPage /> },
@@ -105,10 +103,10 @@ export const router = createBrowserRouter([
     // provides the minimal shell, its own QueryClient, and the Suspense boundary.
     element: <PublicLayout />,
     children: [
+      { path: '/', element: <HomePage /> },
       { path: '/s/:serviceId', element: <PublicSetlistPage /> },
       { path: '/s/:serviceId/song/:versionId', element: <PublicLyricsPage /> },
     ],
   },
-  { path: '/', element: <Navigate to="/dashboard" replace /> },
   { path: '*', element: <Navigate to="/dashboard" replace /> },
 ])

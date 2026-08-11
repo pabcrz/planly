@@ -86,19 +86,7 @@ export interface SongVariant {
   created_at: string
 }
 
-export interface Team {
-  id: string
-  church_id: string
-  name: string
-  description: string | null
-  created_at: string
-}
 
-export interface TeamMember {
-  team_id: string
-  membership_id: string
-  joined_at: string
-}
 
 export interface Person {
   membership_id: string
@@ -110,7 +98,6 @@ export interface Person {
 export interface Service {
   id: string
   church_id: string
-  team_id?: string | null
   service_date: string
   start_time: string
   timezone: string
@@ -121,9 +108,7 @@ export interface Service {
   created_at: string
 }
 
-export type NewService = Omit<Service, 'id' | 'created_at'> & {
-  team_id?: string | null
-}
+export type NewService = Omit<Service, 'id' | 'created_at'>
 
 export interface Setlist {
   id: string

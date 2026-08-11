@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Clock, Users, UserCheck, ChevronRight } from 'lucide-react'
-import type { ServiceWithTeam } from '@/services/serviceService'
+import type { Service } from '@/types/models'
 import { ServiceStatusBadge } from './ServiceStatusBadge'
 import { formatServiceDay, formatServiceDateOnly, formatServiceTime } from './serviceFormat'
 
-export function ServiceCard({ service }: { service: ServiceWithTeam }) {
+export function ServiceCard({ service }: { service: Service }) {
   const serviceType = service.service_type || 'General'
 
   return (
@@ -30,11 +30,7 @@ export function ServiceCard({ service }: { service: ServiceWithTeam }) {
             <Clock className="h-3.5 w-3.5 text-gray-400" />
             <span>{formatServiceTime(service.start_time)} hrs</span>
           </span>
-          <span className="flex items-center gap-1.5 text-gray-700">
-            <Users className="h-3.5 w-3.5 text-gray-400" />
-            <span className="text-gray-400">Equipo:</span> 
-            <span className="font-semibold text-gray-800">{service.team?.name ?? 'Ninguno'}</span>
-          </span>
+
           {service.director ? (
             <span className="flex items-center gap-1.5 text-gray-700">
               <UserCheck className="h-3.5 w-3.5 text-indigo-500" />
