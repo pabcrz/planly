@@ -111,16 +111,38 @@ export async function updatePersonRolesAndProfile(
   return data
 }
 
-export async function getChurchSettings(churchId: string): Promise<{ musical_roles?: string[] }> {
+export interface ChurchSettings {
+  musical_roles?: string[]
+  service_types?: string[]
+}
+
+export async function getChurchSettings(churchId: string): Promise<ChurchSettings> {
   const { data, error } = await supabase.from('churches').select('settings').eq('id', churchId).single()
   if (error) throw error
-  return (data?.settings || {}) as { musical_roles?: string[] }
+  const settings = (data?.settings || {}) as ChurchSettings
+  return {
+    ...settings,
+    service_types: settings.service_types && settings.service_types.length > 0 ? settings.service_types : ['general'],
+  }
 }
 
 export async function updateChurchMusicalRoles(churchId: string, musicalRoles: string[]): Promise<void> {
   const { data: existing } = await supabase.from('churches').select('settings').eq('id', churchId).single()
   const settings = (existing?.settings && typeof existing.settings === 'object' && !Array.isArray(existing.settings) ? existing.settings : {}) as Record<string, unknown>
   const updatedSettings = { ...settings, musical_roles: musicalRoles }
+
+  const { error } = await supabase
+    .from('churches')
+    .update({ settings: updatedSettings as any })
+    .eq('id', churchId)
+  if (error) throw error
+}
+
+export async function updateChurchServiceTypes(churchId: string, serviceTypes: string[]): Promise<void> {
+  const { data: existing } = await supabase.from('churches').select('settings').eq('id', churchId).single()
+  const settings = (existing?.settings && typeof existing.settings === 'object' && !Array.isArray(existing.settings) ? existing.settings : {}) as Record<string, unknown>
+  const cleanTypes = Array.from(new Set(['general', ...serviceTypes.map((t) => t.trim()).filter(Boolean)]))
+  const updatedSettings = { ...settings, service_types: cleanTypes }
 
   const { error } = await supabase
     .from('churches')

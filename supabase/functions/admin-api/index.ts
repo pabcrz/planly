@@ -120,23 +120,7 @@ async function listChurches(request: Extract<AdminRequest, { action: 'list_churc
 }
 
 function buildCleanInviteUrl(req: Request, rawActionLink: string | null | undefined, tokenHash: string | null | undefined, type: 'invite' | 'recovery'): string | null {
-  const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
-  if (tokenHash) {
-    return `${origin}/auth/invite?token=${tokenHash}&type=${type}`
-  }
-  if (rawActionLink) {
-    try {
-      const url = new URL(rawActionLink)
-      const token = url.searchParams.get('token') || url.searchParams.get('token_hash')
-      if (token) {
-        return `${origin}/auth/invite?token=${token}&type=${type}`
-      }
-    } catch {
-      // Fallback
-    }
-    return rawActionLink
-  }
-  return null
+  return rawActionLink ?? null
 }
 
 async function inviteUser(req: Request, request: Extract<AdminRequest, { action: 'invite_user' }>) {

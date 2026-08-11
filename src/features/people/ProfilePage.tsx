@@ -25,7 +25,7 @@ const DEFAULT_ROLES = [
 
 type TabType = 'roles' | 'services' | 'permissions'
 
-export function ProfileForm() {
+export function ProfilePage() {
   const { user } = useAuth()
   const { activeChurchId, activeMembership } = useChurch()
   const queryClient = useQueryClient()

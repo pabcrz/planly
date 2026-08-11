@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ZodError } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
-import type { ServiceWithTeam } from '@/services/serviceService'
+import { getChurchSettings, updateChurchServiceTypes } from '@/services/peopleService'
+
 import type { Service, ServiceStatus } from '@/types/models'
 
 const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
-type FieldErrors = Partial<Record<'team_id' | 'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
+type FieldErrors = Partial<Record<'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
 function toFieldErrors(error: unknown): FieldErrors | null {
   if (!(error instanceof ZodError)) return null
@@ -35,13 +36,11 @@ for (let h = 6; h <= 22; h++) {
 }
 TIME_INTERVALS.push('23:00')
 
-const DEFAULT_SERVICE_TYPES = ['general', 'domingo', 'jueves', 'viernes', 'especial', 'otro']
-
 interface ServiceFormProps {
   open: boolean
   churchId: string
   /** When provided the form edits this service; otherwise it creates a new one. */
-  service?: ServiceWithTeam | null
+  service?: Service | null
   onClose: () => void
   onSaved?: (service: Service) => void
 }
@@ -54,7 +53,14 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
   if (!canManage) return null
 
-  const [teamId, setTeamId] = useState('')
+  const { data: settings } = useQuery({
+    queryKey: ['church-settings', churchId],
+    queryFn: () => getChurchSettings(churchId),
+    enabled: !!churchId && open,
+  })
+  const configuredTypes = settings?.service_types && settings.service_types.length > 0 ? settings.service_types : ['general']
+
+
   const [serviceType, setServiceType] = useState('general')
   const [customType, setCustomType] = useState('')
   const [director, setDirector] = useState('')
@@ -67,14 +73,17 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 
   useEffect(() => {
     if (!open) return
-    setTeamId(service?.team_id ?? '')
+
     const currentType = service?.service_type ?? 'general'
-    if (DEFAULT_SERVICE_TYPES.includes(currentType)) {
+    if (configuredTypes.includes(currentType)) {
       setServiceType(currentType)
       setCustomType('')
-    } else {
-      setServiceType('otro')
+    } else if (currentType && currentType !== 'general') {
+      setServiceType('nuevo')
       setCustomType(currentType)
+    } else {
+      setServiceType('general')
+      setCustomType('')
     }
     setDirector(service?.director ?? '')
     setServiceDate(service?.service_date ?? '')
@@ -83,14 +92,21 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
     setStatus(service?.status ?? 'planned')
     setFieldErrors({})
     setFormError(null)
-  }, [open, service])
+  }, [open, service, configuredTypes])
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const actualType = serviceType === 'otro' ? customType.trim() || 'general' : serviceType
+      const finalType = serviceType === 'nuevo' ? customType.trim() : serviceType
+      const actualType = finalType || 'general'
+
+      if (serviceType === 'nuevo' && customType.trim()) {
+        const newTypeClean = customType.trim()
+        await updateChurchServiceTypes(churchId, [...configuredTypes, newTypeClean])
+        await queryClient.invalidateQueries({ queryKey: ['church-settings', churchId] })
+      }
+
       const input = {
-        team_id: teamId || null,
-        service_type: actualType || 'general',
+        service_type: actualType,
         service_date: serviceDate,
         start_time: startTime,
         director: director.trim() || null,
@@ -155,26 +171,26 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
             onChange={(e) => setServiceType(e.target.value)}
             className={inputClass}
           >
-            <option value="general">General</option>
-            <option value="domingo">Domingo</option>
-            <option value="jueves">Jueves</option>
-            <option value="viernes">Viernes</option>
-            <option value="especial">Especial</option>
-            <option value="otro">Otro (personalizado)...</option>
+            {configuredTypes.map((t) => (
+              <option key={t} value={t}>
+                {t === 'general' ? 'General (Predeterminado)' : t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+            <option value="nuevo">+ Crear nuevo tipo de servicio...</option>
           </select>
           {fieldErrors.service_type ? <p className={errorClass}>{fieldErrors.service_type}</p> : null}
         </div>
 
-        {serviceType === 'otro' ? (
+        {serviceType === 'nuevo' ? (
           <div>
             <label htmlFor="service-type-custom" className={labelClass}>
-              Nombre del tipo personalizado *
+              Nombre del nuevo tipo de servicio *
             </label>
             <input
               id="service-type-custom"
               value={customType}
               onChange={(e) => setCustomType(e.target.value)}
-              placeholder="Ej. Congreso, Vigilia, Jóvenes"
+              placeholder="Ej. Reunión de Jóvenes, Discipulado, Culto de Oración"
               className={inputClass}
               required
             />
