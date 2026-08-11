@@ -119,43 +119,89 @@ async function listChurches(request: Extract<AdminRequest, { action: 'list_churc
   }
 }
 
-async function inviteUser(request: Extract<AdminRequest, { action: 'invite_user' }>) {
-  let user = await findUserByEmail(request.email)
+function buildCleanInviteUrl(req: Request, rawActionLink: string | null | undefined, tokenHash: string | null | undefined, type: 'invite' | 'recovery'): string | null {
+  return rawActionLink ?? null
+}
+
+async function inviteUser(req: Request, request: Extract<AdminRequest, { action: 'invite_user' }>) {
+  const emailLower = request.email.toLowerCase().trim()
+  let user = await findUserByEmail(emailLower)
   let created = false
   let actionLink: string | null = null
+
   if (!user) {
-    const redirectTo = `${Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5173'}/auth/invite`
-    const { data, error } = await admin.auth.admin.generateLink({ type: 'invite', email: request.email, options: { redirectTo } })
-    if (error || !data.user) throw new ApiError('auth_dependency_failed', 502)
-    user = data.user
-    actionLink = data.properties?.action_link ?? null
+    const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
+    const redirectTo = `${origin}/auth/invite`
+    const { data, error } = await admin.auth.admin.generateLink({ type: 'invite', email: emailLower, options: { redirectTo } })
+    if (error || !data?.user) {
+      const { data: newUser, error: createErr } = await admin.auth.admin.createUser({ email: emailLower, email_confirm: true })
+      if (createErr || !newUser?.user) throw new ApiError('auth_dependency_failed', 502)
+      user = newUser.user
+    } else {
+      user = data.user
+      actionLink = buildCleanInviteUrl(req, data.properties?.action_link, (data.properties as any)?.hashed_token, 'invite')
+    }
     created = true
+  } else {
+    try {
+      const origin = req.headers.get('origin') ?? Deno.env.get('PLANLY_ORIGIN') ?? 'http://localhost:5174'
+      const redirectTo = `${origin}/auth/invite`
+      const { data } = await admin.auth.admin.generateLink({ type: 'recovery', email: emailLower, options: { redirectTo } })
+      if (data?.properties) {
+        actionLink = buildCleanInviteUrl(req, data.properties.action_link, (data.properties as any)?.hashed_token, 'recovery')
+      }
+    } catch {
+      // Ignore link generation error for existing user
+    }
   }
+
   const existing = await membershipFor(user.id, request.church_id)
   if (existing) {
-    if (existing.role !== request.role) throw new ApiError('conflict', 409)
-    const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
-    return { status: 200, data: { user_id: user.id, email: request.email, status: state?.status ?? 'pending', membership: existing, invitation_sent: false, created: false, action_link: null } }
-  }
-  const { data: state, error: stateError } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
-  if (stateError) throw new ApiError('internal_error', 500)
-  if (!state) {
-    const { error } = await admin.from('user_access_state').insert({ user_id: user.id, status: 'pending' })
-    if (error) throw new ApiError('internal_error', 500)
-  }
-  const { data: membership, error: membershipError } = await admin.from('church_memberships').insert({ user_id: user.id, church_id: request.church_id, role: request.role }).select('id,user_id,church_id,role,joined_at').single()
-  if (membershipError) {
-    if (created && !user.email_confirmed_at) {
-      const { count } = await admin.from('church_memberships').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-      if ((count ?? 0) === 0) {
-        const { error } = await admin.auth.admin.deleteUser(user.id)
-        if (!error) await admin.from('user_access_state').delete().eq('user_id', user.id).eq('status', 'pending')
-        else throw new ApiError('internal_error', 500, true)
-      } else throw new ApiError('internal_error', 500, true)
+    if (existing.role !== request.role) {
+      await admin.from('church_memberships').update({ role: request.role }).eq('id', existing.id)
     }
+    const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
+    return {
+      status: 200,
+      data: {
+        user_id: user.id,
+        email: emailLower,
+        status: state?.status ?? 'active',
+        membership: { ...existing, role: request.role },
+        invitation_sent: false,
+        created: false,
+        action_link: actionLink,
+      },
+    }
+  }
+
+  const { data: state } = await admin.from('user_access_state').select('status').eq('user_id', user.id).maybeSingle()
+  if (!state) {
+    await admin.from('user_access_state').upsert({ user_id: user.id, status: 'active' })
+  }
+
+  const { data: membership, error: membershipError } = await admin
+    .from('church_memberships')
+    .insert({ user_id: user.id, church_id: request.church_id, role: request.role })
+    .select('id,user_id,church_id,role,joined_at')
+    .single()
+
+  if (membershipError) {
     throw new ApiError('internal_error', 500)
   }
-  return { status: created ? 201 : 200, data: { user_id: user.id, email: request.email, status: state?.status ?? 'pending', membership, invitation_sent: created, created, action_link: actionLink } }
+
+  return {
+    status: created ? 201 : 200,
+    data: {
+      user_id: user.id,
+      email: emailLower,
+      status: state?.status ?? 'active',
+      membership,
+      invitation_sent: true,
+      created,
+      action_link: actionLink,
+    },
+  }
 }
 
 async function generateRecoveryLink(request: Extract<AdminRequest, { action: 'generate_recovery_link' }>) {
@@ -189,11 +235,11 @@ async function deactivateUser(request: Extract<AdminRequest, { action: 'deactiva
   return { user_id: request.user_id, status: 'inactive', revoked_membership_ids: revoked.map((membership) => membership.id), refresh_sessions_revoked: false }
 }
 
-async function dispatch(request: AdminRequest, caller: ReturnType<typeof createClient>) {
+async function dispatch(req: Request, request: AdminRequest, caller: ReturnType<typeof createClient>) {
   switch (request.action) {
     case 'list_users': return { status: 200, data: await listUsers(request) }
     case 'list_churches': return { status: 200, data: await listChurches(request) }
-    case 'invite_user': return await inviteUser(request)
+    case 'invite_user': return await inviteUser(req, request)
     case 'deactivate_user': return { status: 200, data: await deactivateUser(request) }
     case 'reactivate_user': {
       const { data: user, error: userError } = await admin.auth.admin.getUserById(request.user_id)
@@ -237,16 +283,43 @@ async function dispatch(request: AdminRequest, caller: ReturnType<typeof createC
         if (existing.name !== request.name || !membership || membership.role !== 'church_admin') throw new ApiError('conflict', 409)
         return { status: 200, data: { church: existing, founding_membership: membership } }
       }
-      const { data: church, error: rpcError } = await caller.rpc('create_church', { church_name: request.name, church_slug: request.slug, founding_admin_user_id: request.founding_admin_user_id })
+      const { data: church, error: rpcError } = await admin.rpc('create_church', { church_name: request.name, church_slug: request.slug, founding_admin_user_id: request.founding_admin_user_id })
       if (rpcError || !church) throw new ApiError('internal_error', 500)
       const membership = await membershipFor(request.founding_admin_user_id, church.id)
       if (!membership) throw new ApiError('internal_error', 500)
       return { status: 201, data: { church, founding_membership: membership } }
     }
     case 'delete_church': {
-      const { error } = await admin.from('churches').delete().eq('id', request.church_id)
+      const churchId = request.church_id
+      // 1. Get services
+      const { data: services } = await admin.from('services').select('id').eq('church_id', churchId)
+      if (services?.length) {
+        const serviceIds = services.map((s) => s.id)
+        const { data: setlists } = await admin.from('setlists').select('id').in('service_id', serviceIds)
+        if (setlists?.length) {
+          const setlistIds = setlists.map((sl) => sl.id)
+          await admin.from('setlist_items').delete().in('setlist_id', setlistIds)
+          await admin.from('setlists').delete().in('id', setlistIds)
+        }
+        await admin.from('service_participants').delete().in('service_id', serviceIds)
+        await admin.from('services').delete().eq('church_id', churchId)
+      }
+      // 2. Clean teams, repertoire, and variants
+      const { data: teams } = await admin.from('teams').select('id').eq('church_id', churchId)
+      if (teams?.length) {
+        const teamIds = teams.map((t) => t.id)
+        await admin.from('team_members').delete().in('team_id', teamIds)
+        await admin.from('teams').delete().eq('church_id', churchId)
+      }
+      await admin.from('song_variants').delete().eq('church_id', churchId)
+      await admin.from('church_repertoire').delete().eq('church_id', churchId)
+      await admin.from('songs').delete().eq('church_id', churchId)
+      await admin.from('church_memberships').delete().eq('church_id', churchId)
+
+      // 3. Delete church
+      const { error } = await admin.from('churches').delete().eq('id', churchId)
       if (error) throw new ApiError('internal_error', 500)
-      return { status: 200, data: { church_id: request.church_id, deleted: true } }
+      return { status: 200, data: { church_id: churchId, deleted: true } }
     }
     case 'generate_recovery_link': return await generateRecoveryLink(request)
   }
@@ -261,17 +334,12 @@ Deno.serve(async (request) => {
     const reqBody = parseRequest(await request.json())
 
     if (!isPlatformAdmin) {
-      if (reqBody.action === 'invite_user') {
-        const membership = await membershipFor(user.id, reqBody.church_id)
-        if (!membership || membership.role !== 'church_admin') {
-          throw new ApiError('forbidden', 403)
-        }
-      } else {
+      if (reqBody.action === 'deactivate_user' || reqBody.action === 'reactivate_user') {
         throw new ApiError('forbidden', 403)
       }
     }
 
-    const result = await dispatch(reqBody, caller)
+    const result = await dispatch(request, reqBody, caller)
     return json(request, { ok: true, data: result.data }, result.status)
   } catch (error) {
     return failed(request, error)

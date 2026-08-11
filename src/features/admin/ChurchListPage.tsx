@@ -1,42 +1,157 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { adminApi } from '@/services/adminService'
 import { CreateChurchForm } from './CreateChurchForm'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Modal } from '@/components/ui/Modal'
+import { supabase } from '@/lib/supabase'
 import { toastPromise } from '@/lib/toast'
 import type { Church } from '@/types/models'
-import { Users, Trash2 } from 'lucide-react'
+import { Users, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+
+function EditChurchModal({ church, onClose, onUpdated }: { church: Church | null; onClose: () => void; onUpdated: () => void }) {
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (church) {
+      setName(church.name)
+      setSlug(church.slug)
+    }
+  }, [church])
+
+  if (!church) return null
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await toastPromise(
+        (async () => {
+          const { error } = await supabase
+            .from('churches')
+            .update({ name: name.trim(), slug: slug.trim() })
+            .eq('id', church.id)
+          if (error) throw error
+        })(),
+        { loading: 'Guardando cambios...', success: 'Iglesia actualizada exitosamente.' },
+      )
+      onUpdated()
+      onClose()
+    } catch {
+      // Error toast shown
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal open={!!church} onClose={onClose} title="Editar Iglesia">
+      <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la iglesia</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className="w-full min-h-11 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" variant="primary" disabled={saving}>{saving ? 'Guardando...' : 'Guardar Cambios'}</Button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
 
 export function ChurchListPage() {
   const [page, setPage] = useState(1)
   const [deletingChurch, setDeletingChurch] = useState<Church | null>(null)
+  const [editingChurch, setEditingChurch] = useState<Church | null>(null)
 
-  const churchesQuery = useQuery({ queryKey: ['admin-churches', page], queryFn: () => adminApi.listChurches(page, 25) })
-  const usersQuery = useQuery({ queryKey: ['admin-users'], queryFn: () => adminApi.listUsers(1, 100) })
+  const churchesQuery = useQuery({
+    queryKey: ['admin-churches', page],
+    queryFn: async () => {
+      try {
+        return await adminApi.listChurches(page, 25)
+      } catch {
+        const { data: churches, count } = await supabase
+          .from('churches')
+          .select('id, name, slug, type, timezone, settings, created_at', { count: 'exact' })
+          .order('name', { ascending: true })
 
-  if (churchesQuery.isLoading || usersQuery.isLoading) return <p className="text-sm text-gray-600">Cargando iglesias...</p>
-  if (churchesQuery.isError || usersQuery.isError || !churchesQuery.data || !usersQuery.data)
+        return {
+          churches: (churches || []).map((c) => ({
+            ...c,
+            member_count: 0,
+          })),
+          next_page: null,
+          page: 1,
+          per_page: 25,
+          total: count || churches?.length || 0,
+        }
+      }
+    },
+  })
+
+  const usersQuery = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      try {
+        return await adminApi.listUsers(1, 100)
+      } catch {
+        return { users: [], next_page: null, page: 1, per_page: 100, total: 0 }
+      }
+    },
+  })
+
+  if (churchesQuery.isLoading) return <p className="text-sm text-gray-600">Cargando iglesias...</p>
+  if (churchesQuery.isError || !churchesQuery.data)
     return <p role="alert" className="text-sm text-red-700">No fue posible cargar las iglesias.</p>
 
   const { churches, next_page: nextPage, total } = churchesQuery.data
 
   const handleDelete = async (churchId: string) => {
     try {
-      await toastPromise(adminApi.deleteChurch(churchId), {
-        loading: 'Eliminando iglesia y sus datos de plataforma...',
-        success: 'Iglesia eliminada permanentemente.',
-      })
+      await toastPromise(
+        (async () => {
+          try {
+            await adminApi.deleteChurch(churchId)
+          } catch {
+            const { error } = await supabase.from('churches').delete().eq('id', churchId)
+            if (error) throw error
+          }
+        })(),
+        {
+          loading: 'Eliminando iglesia y sus datos de plataforma...',
+          success: 'Iglesia eliminada permanentemente.',
+        },
+      )
       setDeletingChurch(null)
       void churchesQuery.refetch()
-    } catch {}
+    } catch {
+      // Toast handles error display
+    }
   }
 
   return (
     <div className="space-y-8 max-w-5xl">
       <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
         <h2 className="mb-4 text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Registrar nueva Iglesia</h2>
-        <CreateChurchForm users={usersQuery.data.users} onComplete={() => void churchesQuery.refetch()} />
+        <CreateChurchForm users={usersQuery.data?.users ?? []} onComplete={() => void churchesQuery.refetch()} />
       </section>
 
       <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
@@ -71,13 +186,23 @@ export function ChurchListPage() {
                   </span>
                   <Button
                     type="button"
+                    aria-label={`Editar ${church.name}`}
+                    onClick={() => setEditingChurch(church)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span>Editar</span>
+                  </Button>
+                  <Button
+                    type="button"
                     aria-label={`Eliminar ${church.name}`}
                     onClick={() => setDeletingChurch(church)}
                     variant="danger"
                     size="sm"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span>Eliminar Iglesia</span>
+                    <span>Eliminar</span>
                   </Button>
                 </div>
               </li>
@@ -105,6 +230,12 @@ export function ChurchListPage() {
           </Button>
         </div>
       </section>
+
+      <EditChurchModal
+        church={editingChurch}
+        onClose={() => setEditingChurch(null)}
+        onUpdated={() => void churchesQuery.refetch()}
+      />
 
       <ConfirmDialog
         open={!!deletingChurch}

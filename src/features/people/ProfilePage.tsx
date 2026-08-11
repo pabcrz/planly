@@ -25,7 +25,7 @@ const DEFAULT_ROLES = [
 
 type TabType = 'roles' | 'services' | 'permissions'
 
-export function ProfileForm() {
+export function ProfilePage() {
   const { user } = useAuth()
   const { activeChurchId, activeMembership } = useChurch()
   const queryClient = useQueryClient()
@@ -88,13 +88,15 @@ export function ProfileForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [person])
 
+  const canManageRoles = activeMembership?.role === 'church_admin' || activeMembership?.role === 'worship_director'
+
   const mutation = useMutation({
     mutationFn: () =>
       upsertProfile({
         membership_id: membershipId!,
         display_name: displayName,
         instruments: [],
-        musical_roles: selectedRoles,
+        musical_roles: canManageRoles ? selectedRoles : (person?.musical_roles || []),
       }),
     onSuccess: async () => {
       setSaved(true)
@@ -108,25 +110,22 @@ export function ProfileForm() {
     onError: (error) => {
       setSaved(false)
       if (error instanceof ZodError) {
-        setFormError(error.issues[0]?.message || 'Datos inválidos.')
+        setFormError('Por favor verifica los datos ingresados.')
       } else {
-        setFormError('No se pudo guardar el perfil. Intenta de nuevo.')
+        setFormError('Ocurrió un error al guardar el perfil.')
       }
     },
   })
 
-  if (isPersonLoading) return <LoadingSpinner />
-
   const roleLabel =
     activeMembership?.role === 'church_admin'
-      ? 'Admin (Administrador)'
+      ? 'Administrador de Iglesia'
       : activeMembership?.role === 'worship_director'
-      ? 'Editor (Director de Alabanza)'
-      : 'Viewer (Miembro)'
-
-  const userServices = (services || []).filter((s) => s.status !== 'completed').slice(0, 5)
+      ? 'Director de Alabanza'
+      : 'Miembro (Viewer)'
 
   const toggleRole = (role: string) => {
+    if (!canManageRoles) return
     if (selectedRoles.includes(role)) {
       setSelectedRoles(selectedRoles.filter((r) => r !== role))
     } else {
@@ -134,18 +133,35 @@ export function ProfileForm() {
     }
   }
 
+  if (isPersonLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  const userServices = (services || []).filter((s) => s.status !== 'completed').slice(0, 5)
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        title="Perfil y Ministerial"
-        description="Gestión de tu identidad en el equipo musical, roles funcionales y nivel de permisos en la congregación."
+        title="Mi Perfil"
+        description="Gestiona tu información personal, roles e historial de servicios"
       />
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Left Profile Identity Column */}
-        <div className="md:col-span-4 rounded-2xl bg-white p-6 shadow-sm border border-gray-200 flex flex-col items-center md:items-start text-center md:text-left relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-sm mb-4">
-            {displayName.charAt(0).toUpperCase()}
+      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-12">
+        {/* Left Column: Personal info */}
+        <div className="md:col-span-4 rounded-2xl bg-white p-6 shadow-sm border border-gray-200 flex flex-col items-center text-center">
+          <div className="relative mb-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 text-2xl font-bold text-white shadow-md">
+              {displayName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase() || 'M'}
+            </div>
           </div>
 
           <div className="w-full">
@@ -243,20 +259,45 @@ export function ProfileForm() {
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">Tus roles ministeriales, instrumentos y funciones asignadas</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingRoles(!isEditingRoles)}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 transition-colors"
-                >
-                  {isEditingRoles ? (
-                    <span className="inline-flex items-center gap-1"><X className="h-3.5 w-3.5" /> Cerrar edición</span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" /> Editar Roles</span>
-                  )}
-                </button>
+                {canManageRoles ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingRoles(!isEditingRoles)}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 transition-colors"
+                  >
+                    {isEditingRoles ? (
+                      <span className="inline-flex items-center gap-1"><X className="h-3.5 w-3.5" /> Cerrar edición</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" /> Editar Roles</span>
+                    )}
+                  </button>
+                ) : null}
               </div>
 
-              {isEditingRoles ? (
+              {!canManageRoles ? (
+                <div className="space-y-4">
+                  <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200/60">
+                    Tus roles ministeriales e instrumentos son asignados exclusivamente por el administrador de la iglesia en la pestaña de <strong>Personas</strong>.
+                  </p>
+                  {selectedRoles.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <p className="text-xs text-gray-400 italic">No tienes roles ni instrumentos asignados actualmente.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {selectedRoles.map((role) => (
+                        <div
+                          key={role}
+                          className="rounded-xl bg-gray-50/90 px-4 py-3.5 text-sm font-bold text-gray-800 border border-gray-200/80 flex items-center justify-between hover:bg-white transition-all"
+                        >
+                          <span>{role}</span>
+                          <span className="w-2 h-2 rounded-full bg-indigo-600" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : isEditingRoles ? (
                 <div className="space-y-4 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100">
                     <div>
@@ -310,13 +351,15 @@ export function ProfileForm() {
               ) : selectedRoles.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-sm text-gray-500 font-medium">Aún no tienes roles o instrumentos asignados en esta iglesia.</p>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingRoles(true)}
-                    className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
-                  >
-                    + Agregar mis primeros roles
-                  </button>
+                  {canManageRoles ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingRoles(true)}
+                      className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm"
+                    >
+                      + Agregar primeros roles
+                    </button>
+                  ) : null}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">

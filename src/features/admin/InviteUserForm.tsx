@@ -1,35 +1,53 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ChurchRole } from '@/types/models'
 import { adminApi } from '@/services/adminService'
 import { toastPromise, toastSuccess } from '@/lib/toast'
 import { Button } from '@/components/ui/Button'
 
-const roles: ChurchRole[] = ['member', 'worship_director', 'church_admin']
-const inputClass = 'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm'
+const roles: { id: ChurchRole; label: string }[] = [
+  { id: 'member', label: 'Miembro' },
+  { id: 'worship_director', label: 'Director de Alabanza' },
+  { id: 'church_admin', label: 'Administrador' },
+]
+const inputClass = 'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
 
-export function InviteUserForm({ churchIds, onComplete }: { churchIds: string[]; onComplete: () => void }) {
+export function InviteUserForm({
+  churches,
+  onComplete,
+}: {
+  churches: { id: string; name: string }[]
+  onComplete: () => void
+}) {
   const [email, setEmail] = useState('')
-  const [churchId, setChurchId] = useState(churchIds[0] ?? '')
+  const [churchId, setChurchId] = useState(churches[0]?.id ?? '')
   const [role, setRole] = useState<ChurchRole>('member')
   const [errors, setErrors] = useState<{ email?: string; church?: string }>({})
   const [submitting, setSubmitting] = useState(false)
   const [generatedLink, setGeneratedLink] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!churchId && churches.length > 0) {
+      setChurchId(churches[0].id)
+    }
+  }, [churches])
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const targetChurchId = churchId || churches[0]?.id
     const nextErrors = {
       email: /^\S+@\S+\.\S+$/.test(email) ? undefined : 'Ingresa un correo electrónico válido.',
-      church: churchId ? undefined : 'Selecciona una iglesia.',
+      church: targetChurchId ? undefined : 'Selecciona una iglesia.',
     }
     setErrors(nextErrors)
     if (nextErrors.email || nextErrors.church) return
+
     setSubmitting(true)
     setGeneratedLink(null)
     try {
-      const result = await toastPromise(adminApi.inviteUser(email.trim(), churchId, role), {
+      const result = await toastPromise(adminApi.inviteUser(email.trim(), targetChurchId, role), {
         loading: 'Enviando invitación...',
-        success: 'Invitación procesada.',
+        success: 'Invitación procesada exitosamente.',
       })
       if (result.action_link) {
         setGeneratedLink(result.action_link)
@@ -38,6 +56,8 @@ export function InviteUserForm({ churchIds, onComplete }: { churchIds: string[];
         setEmail('')
         onComplete()
       }
+    } catch {
+      // Toast handles error display
     } finally {
       setSubmitting(false)
     }
@@ -47,19 +67,27 @@ export function InviteUserForm({ churchIds, onComplete }: { churchIds: string[];
     <div className="space-y-4">
       <form onSubmit={submit} noValidate className="grid gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 md:grid-cols-4">
         <label className="text-sm font-medium text-gray-700">Correo electrónico
-          <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} aria-invalid={Boolean(errors.email)} />
+          <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} placeholder="correo@ejemplo.com" aria-invalid={Boolean(errors.email)} />
           {errors.email ? <span className="mt-1 block text-xs text-red-700">{errors.email}</span> : null}
         </label>
         <label className="text-sm font-medium text-gray-700">Iglesia
-          <select value={churchId} onChange={(event) => setChurchId(event.target.value)} className={inputClass} aria-invalid={Boolean(errors.church)}>
-            <option value="">Selecciona una iglesia</option>
-            {churchIds.map((id) => <option key={id} value={id}>{id}</option>)}
+          <select value={churchId || churches[0]?.id || ''} onChange={(event) => setChurchId(event.target.value)} className={inputClass} aria-invalid={Boolean(errors.church)}>
+            {churches.length === 0 ? <option value="">No hay iglesias disponibles</option> : null}
+            {churches.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
           {errors.church ? <span className="mt-1 block text-xs text-red-700">{errors.church}</span> : null}
         </label>
-        <label className="text-sm font-medium text-gray-700">Rol
+        <label className="text-sm font-medium text-gray-700">Perfil de Seguridad
           <select value={role} onChange={(event) => setRole(event.target.value as ChurchRole)} className={inputClass}>
-            {roles.map((value) => <option key={value} value={value}>{value.replace('_', ' ')}</option>)}
+            {roles.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </label>
         <Button type="submit" disabled={submitting} variant="primary" className="mt-5">

@@ -11,17 +11,13 @@ import type {
   SetlistItem,
   Song,
   SongVersion,
-  Team,
 } from '@/types/models'
 
 export interface ServiceFilters {
   dateFrom?: string
   dateTo?: string
-  teamId?: string
   status?: ServiceStatus
 }
-
-export type ServiceWithTeam = Service & { team: Pick<Team, 'id' | 'name'> }
 export type SetlistItemWithSong = SetlistItem & {
   song: Pick<Song, 'id' | 'title' | 'author'>
   version: Pick<SongVersion, 'id' | 'version_name' | 'key'>
@@ -48,7 +44,6 @@ const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'La hora debe tene
 
 const createServiceSchema = z.object({
   church_id: pgUuid(),
-  team_id: pgUuid().nullish(),
   service_date: dateSchema,
   start_time: timeSchema,
   timezone: z.string().trim().min(1, 'La zona horaria es obligatoria').max(60),
@@ -58,7 +53,6 @@ const createServiceSchema = z.object({
 })
 
 const updateServiceSchema = z.object({
-  team_id: pgUuid().nullish(),
   service_date: dateSchema.optional(),
   start_time: timeSchema.optional(),
   timezone: z.string().trim().min(1).max(60).optional(),
@@ -90,28 +84,27 @@ export type UpdateSetlistItemInput = z.input<typeof updateSetlistItemSchema>
 // Role enforcement lives in RLS (services_*_leader / services_delete_admin /
 // items_*_leader / participants_*_leader); these functions throw on denial.
 
-export async function getServices(churchId: string, filters: ServiceFilters = {}): Promise<ServiceWithTeam[]> {
+export async function getServices(churchId: string, filters: ServiceFilters = {}): Promise<Service[]> {
   let query = supabase
     .from('services')
-    .select('*, team:teams(id, name)')
+    .select('*')
     .eq('church_id', churchId)
   if (filters.dateFrom) query = query.gte('service_date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('service_date', filters.dateTo)
-  if (filters.teamId) query = query.eq('team_id', filters.teamId)
   if (filters.status) query = query.eq('status', filters.status)
   const { data, error } = await query.order('service_date').order('start_time')
   if (error) throw error
-  return data as ServiceWithTeam[]
+  return data as Service[]
 }
 
-export async function getService(id: string): Promise<ServiceWithTeam> {
+export async function getService(id: string): Promise<Service> {
   const { data, error } = await supabase
     .from('services')
-    .select('*, team:teams(id, name)')
+    .select('*')
     .eq('id', id)
     .single()
   if (error) throw error
-  return data as ServiceWithTeam
+  return data as Service
 }
 
 // The setlist row is created right after the service (1:1 per spec); if the

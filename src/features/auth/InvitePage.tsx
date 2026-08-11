@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toastSuccess } from '@/lib/toast'
@@ -23,29 +23,56 @@ function classify(error: { code?: string } | null): InviteState {
 export function InvitePage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const tokenHash = params.get('token_hash')
-  const typeParam = params.get('type')
+
+  // Parse token and type from query params or URL hash fragment
+  const hashParams = new URLSearchParams(window.location.hash.substring(1))
+  const tokenHash = params.get('token') || params.get('token_hash') || hashParams.get('token_hash') || hashParams.get('access_token')
+  const typeParam = params.get('type') || hashParams.get('type') || 'invite'
   const isRecovery = typeParam === 'recovery'
   const validType = typeParam === 'invite' || isRecovery
+
+  const [hasSession, setHasSession] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
   const [state, setState] = useState<InviteState>(tokenHash && validType ? 'ready' : 'missing')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setHasSession(true)
+        setState('ready')
+      }
+      setCheckingSession(false)
+    })
+  }, [])
+
   async function acceptInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!tokenHash || !validType) return
     if (password.length < 8) return setFieldError('La contraseña debe tener al menos 8 caracteres.')
     if (password !== confirmation) return setFieldError('Las contraseñas no coinciden.')
     setFieldError(null)
     setSubmitting(true)
-    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: (typeParam as 'invite' | 'recovery') ?? 'invite' })
-    if (error || !data.session) {
-      setState(classify(error))
-      setSubmitting(false)
-      return
+
+    if (!hasSession) {
+      if (!tokenHash) {
+        setState('missing')
+        setSubmitting(false)
+        return
+      }
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: (typeParam as 'invite' | 'recovery') ?? 'invite',
+      })
+      if (error || !data.session) {
+        setState(classify(error))
+        setSubmitting(false)
+        return
+      }
     }
+
     const passwordResult = await supabase.auth.updateUser({ password })
     if (passwordResult.error) {
       setState('invalid')
@@ -62,6 +89,7 @@ export function InvitePage() {
     navigate('/dashboard', { replace: true })
   }
 
+  if (checkingSession) return <p className="text-center text-sm text-gray-600">Verificando invitación...</p>
   if (state !== 'ready') return <InviteNotice message={messages[state]} />
   return <form onSubmit={acceptInvite} className="flex flex-col gap-4" noValidate>
     <h1 className="text-lg font-semibold text-gray-900">{isRecovery ? 'Restablecer contraseña' : 'Activa tu cuenta'}</h1>
