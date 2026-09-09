@@ -19,13 +19,12 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { isManagerRole } from '@/lib/roles'
 import { ServiceForm } from './ServiceForm'
 import { ServiceStatusBadge } from './ServiceStatusBadge'
 import { formatServiceDay, formatServiceDateOnly, formatServiceTime } from './serviceFormat'
 import { SetlistEditor } from './SetlistEditor'
 import { ParticipantList } from './ParticipantList'
-
-const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
 // Forward-only status flow (spec: service-edit-and-status-transition).
 const NEXT_STATUS: Partial<Record<ServiceStatus, { status: ServiceStatus; label: string; icon: any }>> = {
@@ -43,7 +42,7 @@ export function ServiceDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'setlist' | 'participants'>('setlist')
 
-  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+  const canManage = activeMembership ? isManagerRole(activeMembership.role) : false
   const canDelete = activeMembership?.role === 'church_admin'
 
   const { data: service, isLoading, error } = useQuery({
@@ -344,4 +343,3 @@ export function ServiceDetailPage() {
     </div>
   )
 }
-

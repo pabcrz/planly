@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { toastPromise } from '@/lib/toast'
-import { adminApi } from '@/services/adminService'
+import { createChurchWithFallback } from '@/services/adminService'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/app/providers/AuthProvider'
-import { supabase } from '@/lib/supabase'
 
 function slugify(value: string) { return value.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }
 
@@ -23,18 +22,7 @@ export function CreateChurchForm({ users, onComplete }: { users: { id: string; e
     setError(null); setSubmitting(true)
     try {
       await toastPromise(
-        (async () => {
-          try {
-            await adminApi.createChurch(name.trim(), slug, targetFounder)
-          } catch {
-            const { error: rpcErr } = await (supabase.rpc as any)('create_church', {
-              church_name: name.trim(),
-              church_slug: slug,
-              founding_admin_user_id: targetFounder,
-            })
-            if (rpcErr) throw rpcErr
-          }
-        })(),
+        createChurchWithFallback(name.trim(), slug, targetFounder),
         { loading: 'Creando iglesia...', success: 'Iglesia creada exitosamente.' },
       )
       setName(''); onComplete()

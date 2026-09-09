@@ -7,21 +7,10 @@ import { getChurchSettings, getPerson, upsertProfile } from '@/services/peopleSe
 import { getServices } from '@/services/serviceService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DEFAULT_MUSICAL_ROLES, isManagerRole } from '@/lib/roles'
 import { formatServiceDateOnly, formatServiceDay, formatServiceTime } from '@/features/services/serviceFormat'
 import { RoleConfigDialog } from '@/features/people/RoleConfigDialog'
 import { Shield, Check, X, Pencil, Settings } from 'lucide-react'
-
-const DEFAULT_ROLES = [
-  'Director de alabanza',
-  'Vocalista',
-  'Guitarra acústica',
-  'Guitarra eléctrica',
-  'Bajo',
-  'Batería',
-  'Teclado',
-  'Pastor',
-  'Líder',
-]
 
 type TabType = 'roles' | 'services' | 'permissions'
 
@@ -51,7 +40,7 @@ export function ProfilePage() {
 
   const availableRoles: string[] = settings?.musical_roles && settings.musical_roles.length > 0
     ? settings.musical_roles
-    : DEFAULT_ROLES
+    : [...DEFAULT_MUSICAL_ROLES]
 
   const defaultDisplayName =
     (user?.user_metadata?.full_name as string | undefined) ??
@@ -88,7 +77,7 @@ export function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [person])
 
-  const canManageRoles = activeMembership?.role === 'church_admin' || activeMembership?.role === 'worship_director'
+  const canManageRoles = activeMembership ? isManagerRole(activeMembership.role) : false
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -435,8 +424,8 @@ export function ProfilePage() {
                 </div>
                 <div className="py-3 flex items-center justify-between">
                   <span className="font-medium text-gray-700">Administrar catálogo de personas, perfiles de seguridad y roles ministeriales</span>
-                  <span className={`inline-flex items-center gap-1 ${activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
-                    {activeMembership?.role !== 'church_admin' && activeMembership?.role !== 'worship_director' ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
+                    <span className={`inline-flex items-center gap-1 ${!canManageRoles ? 'text-gray-400 font-medium' : 'text-emerald-600 font-bold'}`}>
+                     {!canManageRoles ? <><X className="h-3.5 w-3.5" /> Solo Editores/Admins</> : <><Check className="h-3.5 w-3.5" /> Permitido</>}
                   </span>
                 </div>
               </div>

@@ -5,12 +5,12 @@ import { useChurch } from '@/app/providers/ChurchProvider'
 import { getSongs } from '@/services/songService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DataState } from '@/components/shared/DataState'
 import { Button } from '@/components/ui/Button'
+import { isManagerRole } from '@/lib/roles'
 import { SongCard } from './SongCard'
 import { usePlatformAdmin } from '@/features/auth/platformAdmin'
 
-const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 const PAGE_SIZE = 10
 
 export function SongList() {
@@ -20,7 +20,7 @@ export function SongList() {
   const [tag, setTag] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const isCanonicalCatalog = !activeChurchId && isPlatformAdmin === true
-  const canManage = isCanonicalCatalog || (activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false)
+  const canManage = isCanonicalCatalog || (activeMembership ? isManagerRole(activeMembership.role) : false)
 
   const filters = useMemo(
     () => ({ search: search.trim() || undefined, tag: tag || undefined }),
@@ -103,74 +103,79 @@ export function SongList() {
       </div>
 
       <div className="px-4 pb-12 md:px-6 max-w-6xl">
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : error ? (
-          <EmptyState title="No fue posible cargar las canciones" message="Intenta de nuevo." />
-        ) : !songs || songs.length === 0 ? (
-          <EmptyState
-            title="No hay canciones"
-            message={
-              filters.search || filters.tag
-                ? 'Prueba otra búsqueda o etiqueta.'
-                : 'Agrega tu primera canción para comenzar a crear el catálogo.'
-            }
-            action={
-              canManage && !filters.search && !filters.tag ? (
-                <Link
-                  to={isCanonicalCatalog ? '/admin/songs/new' : '/songs/new'}
-                  className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm"
-                >
-                  {isCanonicalCatalog ? 'Nueva canción base' : 'Nueva canción'}
-                </Link>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="flex flex-col gap-6">
-            <ul className="flex flex-col gap-3">
-              {paginatedSongs.map((song) => (
-                <li key={song.id}>
-                  <SongCard song={song} />
-                </li>
-              ))}
-            </ul>
-            {totalPages > 1 ? (
-              <div className="flex items-center justify-center gap-1.5 border-t border-gray-100 pt-6">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  « Anterior
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    type="button"
-                    variant={currentPage === page ? 'primary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                    className="min-w-10"
+        <DataState
+          data={songs}
+          isLoading={isLoading}
+          error={error}
+          isEmpty={(items) => items.length === 0}
+          errorContent={<EmptyState title="No fue posible cargar las canciones" message="Intenta de nuevo." />}
+          emptyContent={
+            <EmptyState
+              title="No hay canciones"
+              message={
+                filters.search || filters.tag
+                  ? 'Prueba otra búsqueda o etiqueta.'
+                  : 'Agrega tu primera canción para comenzar a crear el catálogo.'
+              }
+              action={
+                canManage && !filters.search && !filters.tag ? (
+                  <Link
+                    to={isCanonicalCatalog ? '/admin/songs/new' : '/songs/new'}
+                    className="inline-flex min-h-11 items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm"
                   >
-                    {page}
-                  </Button>
+                    {isCanonicalCatalog ? 'Nueva canción base' : 'Nueva canción'}
+                  </Link>
+                ) : undefined
+              }
+            />
+          }
+        >
+          {() => (
+            <div className="flex flex-col gap-6">
+              <ul className="flex flex-col gap-3">
+                {paginatedSongs.map((song) => (
+                  <li key={song.id}>
+                    <SongCard song={song} />
+                  </li>
                 ))}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Siguiente »
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        )}
+              </ul>
+              {totalPages > 1 ? (
+                <div className="flex items-center justify-center gap-1.5 border-t border-gray-100 pt-6">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    « Anterior
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      type="button"
+                      variant={currentPage === page ? 'primary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="min-w-10"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Siguiente »
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </DataState>
       </div>
     </div>
   )

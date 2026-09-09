@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { formatDate } from '@/lib/formatDate'
+import { DEFAULT_MUSICAL_ROLES, isManagerRole } from '@/lib/roles'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import { deleteMembership, getChurchSettings, getPeople, updateMembershipRole } from '@/services/peopleService'
 import type { ChurchRole } from '@/types/models'
@@ -13,18 +14,6 @@ import { RoleConfigDialog } from './RoleConfigDialog'
 import { PersonRolesDialog } from './PersonRolesDialog'
 import { InvitePersonDialog } from './InvitePersonDialog'
 import { Settings, UserPlus, Trash2 } from 'lucide-react'
-
-const DEFAULT_ROLES = [
-  'Director de alabanza',
-  'Vocalista',
-  'Guitarra acústica',
-  'Guitarra eléctrica',
-  'Bajo',
-  'Batería',
-  'Teclado',
-  'Pastor',
-  'Líder',
-]
 
 export function PeopleListPage() {
   const { activeChurchId, activeMembership } = useChurch()
@@ -40,7 +29,7 @@ export function PeopleListPage() {
   const [editingMemberRoles, setEditingMemberRoles] = useState<MembershipWithPerson | null>(null)
   const [deletingMember, setDeletingMember] = useState<MembershipWithPerson | null>(null)
 
-  const canManage = userRole === 'church_admin' || userRole === 'worship_director'
+  const canManage = userRole ? isManagerRole(userRole) : false
   const isChurchAdmin = userRole === 'church_admin'
 
   const { data: people, isLoading: isPeopleLoading } = useQuery({
@@ -59,7 +48,7 @@ export function PeopleListPage() {
     if (settings && settings.musical_roles && settings.musical_roles.length > 0) {
       return settings.musical_roles
     }
-    return DEFAULT_ROLES
+    return [...DEFAULT_MUSICAL_ROLES]
   }, [settings])
 
   const roleMutation = useMutation({

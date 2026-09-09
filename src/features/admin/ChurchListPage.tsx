@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '@/services/adminService'
 import { CreateChurchForm } from './CreateChurchForm'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { DataState } from '@/components/shared/DataState'
 import { Modal } from '@/components/ui/Modal'
 import { supabase } from '@/lib/supabase'
 import { toastPromise } from '@/lib/toast'
@@ -118,11 +119,14 @@ export function ChurchListPage() {
     },
   })
 
-  if (churchesQuery.isLoading) return <p className="text-sm text-gray-600">Cargando iglesias...</p>
-  if (churchesQuery.isError || !churchesQuery.data)
-    return <p role="alert" className="text-sm text-red-700">No fue posible cargar las iglesias.</p>
-
-  const { churches, next_page: nextPage, total } = churchesQuery.data
+  const churchListData = churchesQuery.data ?? {
+    churches: [],
+    next_page: null,
+    page: 1,
+    per_page: 25,
+    total: 0,
+  }
+  const { churches, next_page: nextPage, total } = churchListData
 
   const handleDelete = async (churchId: string) => {
     try {
@@ -147,7 +151,7 @@ export function ChurchListPage() {
     }
   }
 
-  return (
+  const pageContent = (
     <div className="space-y-8 max-w-5xl">
       <section className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200">
         <h2 className="mb-4 text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Registrar nueva Iglesia</h2>
@@ -245,5 +249,19 @@ export function ChurchListPage() {
         onCancel={() => setDeletingChurch(null)}
       />
     </div>
+  )
+
+  return (
+    <DataState
+      data={churchesQuery.data}
+      isLoading={churchesQuery.isLoading}
+      error={churchesQuery.error}
+      isEmpty={(result) => result.churches.length === 0}
+      loading={<p className="text-sm text-gray-600">Cargando iglesias...</p>}
+      errorContent={<p role="alert" className="text-sm text-red-700">No fue posible cargar las iglesias.</p>}
+      emptyContent={pageContent}
+    >
+      {() => pageContent}
+    </DataState>
   )
 }

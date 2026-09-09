@@ -7,12 +7,12 @@ import type { ServiceFilters } from '@/services/serviceService'
 import type { ServiceStatus } from '@/types/models'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { DataState } from '@/components/shared/DataState'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
+import { isManagerRole } from '@/lib/roles'
 import { ServiceCard } from './ServiceCard'
 import { Plus, Filter, RotateCcw } from 'lucide-react'
-
-const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
 export function ServiceList() {
   const { activeChurchId, activeMembership } = useChurch()
@@ -20,7 +20,7 @@ export function ServiceList() {
   const [dateTo, setDateTo] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+  const canManage = activeMembership ? isManagerRole(activeMembership.role) : false
 
   const filters: ServiceFilters = useMemo(
     () => ({
@@ -171,40 +171,40 @@ export function ServiceList() {
 
         {/* Services Main List */}
         <main className="lg:col-span-3 flex flex-col gap-4">
-          {isLoading ? (
-            <div className="flex justify-center p-12">
-              <LoadingSpinner />
-            </div>
-          ) : null}
-
-          {error ? (
-            <EmptyState title="No fue posible cargar los servicios" message="Intenta de nuevo." />
-          ) : null}
-
-          {services && services.length === 0 ? (
-            <EmptyState
-              title="No se encontraron servicios"
-              message={
-                canManage
-                  ? 'Crea tu primer servicio para comenzar a preparar setlists.'
-                  : 'No hay servicios que coincidan con los filtros seleccionados.'
-              }
-              action={
-                canManage ? (
-                  <Link to="/services/new">
-                    <Button variant="primary" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      <span>Nuevo servicio</span>
-                    </Button>
-                  </Link>
-                ) : undefined
-              }
-            />
-          ) : null}
-
-          {services?.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
+          <DataState
+            data={services}
+            isLoading={isLoading}
+            error={error}
+            isEmpty={(items) => items.length === 0}
+            loading={
+              <div className="flex justify-center p-12">
+                <LoadingSpinner />
+              </div>
+            }
+            errorContent={<EmptyState title="No fue posible cargar los servicios" message="Intenta de nuevo." />}
+            emptyContent={
+              <EmptyState
+                title="No se encontraron servicios"
+                message={
+                  canManage
+                    ? 'Crea tu primer servicio para comenzar a preparar setlists.'
+                    : 'No hay servicios que coincidan con los filtros seleccionados.'
+                }
+                action={
+                  canManage ? (
+                    <Link to="/services/new">
+                      <Button variant="primary" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        <span>Nuevo servicio</span>
+                      </Button>
+                    </Link>
+                  ) : undefined
+                }
+              />
+            }
+          >
+            {(items) => items.map((service) => <ServiceCard key={service.id} service={service} />)}
+          </DataState>
         </main>
       </div>
     </div>
