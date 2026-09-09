@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toastSuccess } from '@/lib/toast'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/shared/FormField'
+import { activateCurrentUser, getCurrentSession, signOut, updatePassword, verifyInviteToken } from '@/services/authService'
 
 type InviteState = 'missing' | 'expired' | 'used' | 'invalid' | 'ready'
 
@@ -14,9 +15,10 @@ const messages: Record<Exclude<InviteState, 'ready'>, string> = {
   invalid: 'No se pudo validar la invitación. Solicita una nueva invitación.',
 }
 
-function classify(error: { code?: string } | null): InviteState {
-  if (error?.code === 'otp_expired') return 'expired'
-  if (error?.code === 'otp_already_used') return 'used'
+function classify(error: unknown): InviteState {
+  const code = typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string' ? error.code : null
+  if (code === 'otp_expired') return 'expired'
+  if (code === 'otp_already_used') return 'used'
   return 'invalid'
 }
 
@@ -40,13 +42,24 @@ export function InvitePage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setHasSession(true)
-        setState('ready')
-      }
-      setCheckingSession(false)
-    })
+    let mounted = true
+
+    getCurrentSession()
+      .then((session) => {
+        if (!mounted) return
+        if (session) {
+          setHasSession(true)
+          setState('ready')
+        }
+        setCheckingSession(false)
+      })
+      .catch(() => {
+        if (mounted) setCheckingSession(false)
+      })
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
   async function acceptInvite(event: FormEvent<HTMLFormElement>) {
@@ -62,26 +75,35 @@ export function InvitePage() {
         setSubmitting(false)
         return
       }
-      const { data, error } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: (typeParam as 'invite' | 'recovery') ?? 'invite',
-      })
-      if (error || !data.session) {
+      try {
+        const session = await verifyInviteToken(tokenHash, typeParam === 'recovery' ? 'recovery' : 'invite')
+        if (!session) {
+          setState(classify(null))
+          setSubmitting(false)
+          return
+        }
+      } catch (error) {
         setState(classify(error))
         setSubmitting(false)
         return
       }
     }
 
-    const passwordResult = await supabase.auth.updateUser({ password })
-    if (passwordResult.error) {
+    try {
+      await updatePassword(password)
+    } catch {
       setState('invalid')
       setSubmitting(false)
       return
     }
-    const activation = await supabase.rpc('activate_current_user')
-    if (activation.error) {
-      await supabase.auth.signOut()
+    try {
+      await activateCurrentUser()
+    } catch {
+      try {
+        await signOut()
+      } catch {
+        // Sign out is best effort; preserve the activation-error redirect.
+      }
       navigate('/sign-in?invite_error=activation', { replace: true })
       return
     }
@@ -94,12 +116,12 @@ export function InvitePage() {
   return <form onSubmit={acceptInvite} className="flex flex-col gap-4" noValidate>
     <h1 className="text-lg font-semibold text-gray-900">{isRecovery ? 'Restablecer contraseña' : 'Activa tu cuenta'}</h1>
     <p className="text-sm text-gray-600">{isRecovery ? 'Ingresa tu nueva contraseña para acceder a Planly.' : 'Establece una contraseña para acceder a Planly.'}</p>
-    <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">Contraseña
-      <input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="min-h-11 rounded-md border border-gray-300 px-3 py-2" />
-    </label>
-    <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">Confirmar contraseña
-      <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="min-h-11 rounded-md border border-gray-300 px-3 py-2" />
-    </label>
+    <FormField id="invite-password" label="Contraseña">
+      <input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="min-h-11 w-full rounded-md border border-gray-300 px-3 py-2" />
+    </FormField>
+    <FormField id="invite-password-confirmation" label="Confirmar contraseña">
+      <input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="min-h-11 w-full rounded-md border border-gray-300 px-3 py-2" />
+    </FormField>
     {fieldError ? <p className="text-sm text-red-600">{fieldError}</p> : null}
     <Button type="submit" disabled={submitting} variant="primary">{submitting ? (isRecovery ? 'Guardando…' : 'Activando…') : (isRecovery ? 'Restablecer contraseña' : 'Aceptar invitación')}</Button>
   </form>

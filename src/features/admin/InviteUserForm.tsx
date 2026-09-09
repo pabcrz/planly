@@ -4,6 +4,7 @@ import type { ChurchRole } from '@/types/models'
 import { adminApi } from '@/services/adminService'
 import { toastPromise, toastSuccess } from '@/lib/toast'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/shared/FormField'
 
 const roles: { id: ChurchRole; label: string }[] = [
   { id: 'member', label: 'Miembro' },
@@ -66,12 +67,11 @@ export function InviteUserForm({
   return (
     <div className="space-y-4">
       <form onSubmit={submit} noValidate className="grid gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 md:grid-cols-4">
-        <label className="text-sm font-medium text-gray-700">Correo electrónico
-          <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} placeholder="correo@ejemplo.com" aria-invalid={Boolean(errors.email)} />
-          {errors.email ? <span className="mt-1 block text-xs text-red-700">{errors.email}</span> : null}
-        </label>
-        <label className="text-sm font-medium text-gray-700">Iglesia
-          <select value={churchId || churches[0]?.id || ''} onChange={(event) => setChurchId(event.target.value)} className={inputClass} aria-invalid={Boolean(errors.church)}>
+        <FormField id="invite-user-email" label="Correo electrónico" error={errors.email} errorClassName="mt-1 block text-xs text-red-700">
+          <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} placeholder="correo@ejemplo.com" />
+        </FormField>
+        <FormField id="invite-user-church" label="Iglesia" error={errors.church} errorClassName="mt-1 block text-xs text-red-700">
+          <select value={churchId || churches[0]?.id || ''} onChange={(event) => setChurchId(event.target.value)} className={inputClass}>
             {churches.length === 0 ? <option value="">No hay iglesias disponibles</option> : null}
             {churches.map((c) => (
               <option key={c.id} value={c.id}>
@@ -79,9 +79,8 @@ export function InviteUserForm({
               </option>
             ))}
           </select>
-          {errors.church ? <span className="mt-1 block text-xs text-red-700">{errors.church}</span> : null}
-        </label>
-        <label className="text-sm font-medium text-gray-700">Perfil de Seguridad
+        </FormField>
+        <FormField id="invite-user-role" label="Perfil de Seguridad">
           <select value={role} onChange={(event) => setRole(event.target.value as ChurchRole)} className={inputClass}>
             {roles.map((r) => (
               <option key={r.id} value={r.id}>
@@ -89,7 +88,7 @@ export function InviteUserForm({
               </option>
             ))}
           </select>
-        </label>
+        </FormField>
         <Button type="submit" disabled={submitting} variant="primary" className="mt-5">
           Invitar usuario
         </Button>

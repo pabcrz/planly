@@ -32,3 +32,33 @@ export class AdminApiClient {
 }
 
 export const adminApi = new AdminApiClient()
+
+interface CreateChurchRpcArgs {
+  church_name: string
+  church_slug: string
+  founding_admin_user_id: string
+}
+
+type CreateChurchRpc = (
+  functionName: 'create_church',
+  args: CreateChurchRpcArgs,
+) => Promise<{ error: { message: string } | null }>
+
+export async function createChurchViaRpc(name: string, slug: string, foundingAdminUserId: string): Promise<void> {
+  // The generated schema currently exposes a different create_church signature than this fallback RPC. Keep the compatibility cast at the service boundary until types are regenerated.
+  const rpc = supabase.rpc as unknown as CreateChurchRpc
+  const { error } = await rpc('create_church', {
+    church_name: name,
+    church_slug: slug,
+    founding_admin_user_id: foundingAdminUserId,
+  })
+  if (error) throw error
+}
+
+export async function createChurchWithFallback(name: string, slug: string, foundingAdminUserId: string): Promise<void> {
+  try {
+    await adminApi.createChurch(name, slug, foundingAdminUserId)
+  } catch {
+    await createChurchViaRpc(name, slug, foundingAdminUserId)
+  }
+}

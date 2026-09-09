@@ -5,19 +5,8 @@ import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { getChurchSettings, updateChurchMusicalRoles } from '@/services/peopleService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DEFAULT_MUSICAL_ROLES } from '@/lib/roles'
 import { Plus, Check, X, Pencil, Trash2 } from 'lucide-react'
-
-const DEFAULT_ROLES = [
-  'Director de alabanza',
-  'Vocalista',
-  'Guitarra acústica',
-  'Guitarra eléctrica',
-  'Bajo',
-  'Batería',
-  'Teclado',
-  'Pastor',
-  'Líder',
-]
 
 interface RoleConfigDialogProps {
   open: boolean
@@ -52,7 +41,7 @@ export function RoleConfigDialog({ open, onClose }: RoleConfigDialogProps) {
       if (settings.musical_roles && settings.musical_roles.length > 0) {
         setRoles(settings.musical_roles)
       } else {
-        setRoles(DEFAULT_ROLES)
+        setRoles([...DEFAULT_MUSICAL_ROLES])
       }
     }
   }, [settings])

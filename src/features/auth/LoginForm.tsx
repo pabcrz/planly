@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signIn } from '@/services/authService'
 import { getErrorMessage } from '@/lib/toast'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/shared/FormField'
 
 const inputClass =
   'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
@@ -42,8 +43,12 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
-        Correo electrónico
+      <FormField
+        id="login-email"
+        label="Correo electrónico"
+        className="flex flex-col gap-1"
+        labelClassName="text-sm font-medium text-gray-700"
+      >
         <input
           type="email"
           autoComplete="email"
@@ -52,10 +57,14 @@ export function LoginForm() {
           onChange={(event) => setEmail(event.target.value)}
           className={inputClass}
         />
-      </label>
+      </FormField>
 
-      <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
-        Contraseña
+      <FormField
+        id="login-password"
+        label="Contraseña"
+        className="flex flex-col gap-1"
+        labelClassName="text-sm font-medium text-gray-700"
+      >
         <input
           type="password"
           autoComplete="current-password"
@@ -64,7 +73,7 @@ export function LoginForm() {
           onChange={(event) => setPassword(event.target.value)}
           className={inputClass}
         />
-      </label>
+      </FormField>
 
       <Button
         type="submit"

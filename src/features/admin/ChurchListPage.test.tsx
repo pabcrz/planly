@@ -2,16 +2,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-const { listChurches, listUsers } = vi.hoisted(() => ({ listChurches: vi.fn(), listUsers: vi.fn() }))
+const { listChurches, listUsers, createChurchWithFallback, useAuth } = vi.hoisted(() => ({
+  listChurches: vi.fn(),
+  listUsers: vi.fn(),
+  createChurchWithFallback: vi.fn(),
+  useAuth: vi.fn(),
+}))
 
 vi.mock('@/services/adminService', () => ({
   adminApi: { listChurches, listUsers, createChurch: vi.fn() },
+  createChurchWithFallback,
 }))
+vi.mock('@/app/providers/AuthProvider', () => ({ useAuth }))
 
 import { ChurchListPage } from './ChurchListPage'
 
 describe('ChurchListPage', () => {
   it('renders a zero-membership church from the authoritative church list', async () => {
+    useAuth.mockReturnValue({ user: { id: 'current-user', email: 'current@example.com' } })
     listChurches.mockResolvedValueOnce({
       churches: [{ id: 'church-1', name: 'Planly Centro', slug: 'planly-centro', type: 'church', timezone: 'America/Mexico_City', settings: {}, created_at: '2026-01-01T00:00:00Z', member_count: 0 }],
       page: 1, per_page: 25, total: 1, next_page: null,

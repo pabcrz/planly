@@ -7,10 +7,9 @@ import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
 import { changeStatus, createService, updateService } from '@/services/serviceService'
 import { getChurchSettings, updateChurchServiceTypes } from '@/services/peopleService'
+import { isManagerRole } from '@/lib/roles'
 
 import type { Service, ServiceStatus } from '@/types/models'
-
-const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
 type FieldErrors = Partial<Record<'service_date' | 'start_time' | 'notes' | 'director' | 'service_type', string>>
 
@@ -28,6 +27,7 @@ function toFieldErrors(error: unknown): FieldErrors | null {
 
 const STATUSES: ServiceStatus[] = ['planned', 'active', 'completed']
 const TIME_ZONE = 'America/Mexico_City'
+const DEFAULT_SERVICE_TYPES = ['general']
 
 const TIME_INTERVALS: string[] = []
 for (let h = 6; h <= 22; h++) {
@@ -47,18 +47,16 @@ interface ServiceFormProps {
 
 export function ServiceForm({ open, churchId, service, onClose, onSaved }: ServiceFormProps) {
   const { activeMembership } = useChurch()
-  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+  const canManage = activeMembership ? isManagerRole(activeMembership.role) : false
   const isEdit = !!service
   const queryClient = useQueryClient()
-
-  if (!canManage) return null
 
   const { data: settings } = useQuery({
     queryKey: ['church-settings', churchId],
     queryFn: () => getChurchSettings(churchId),
     enabled: !!churchId && open,
   })
-  const configuredTypes = settings?.service_types && settings.service_types.length > 0 ? settings.service_types : ['general']
+  const configuredTypes = settings?.service_types && settings.service_types.length > 0 ? settings.service_types : DEFAULT_SERVICE_TYPES
 
 
   const [serviceType, setServiceType] = useState('general')
@@ -137,6 +135,8 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
       }
     },
   })
+
+  if (!canManage) return null
 
   const inputClass =
     'min-h-11 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none'
@@ -313,7 +313,7 @@ export function ServiceForm({ open, churchId, service, onClose, onSaved }: Servi
 export function NewServicePage() {
   const navigate = useNavigate()
   const { activeChurchId, activeMembership } = useChurch()
-  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+  const canManage = activeMembership ? isManagerRole(activeMembership.role) : false
 
   if (!activeChurchId || !canManage) {
     return <Navigate to="/services" replace />

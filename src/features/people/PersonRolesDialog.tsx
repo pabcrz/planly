@@ -3,22 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { useChurch } from '@/app/providers/ChurchProvider'
+import { DEFAULT_MUSICAL_ROLES } from '@/lib/roles'
 import type { MembershipWithPerson } from '@/services/peopleService'
 import { updatePersonRolesAndProfile } from '@/services/peopleService'
 import { RoleConfigDialog } from './RoleConfigDialog'
 import { Settings } from 'lucide-react'
-
-const DEFAULT_ROLES = [
-  'Director de alabanza',
-  'Vocalista',
-  'Guitarra acústica',
-  'Guitarra eléctrica',
-  'Bajo',
-  'Batería',
-  'Teclado',
-  'Pastor',
-  'Líder',
-]
 
 interface PersonRolesDialogProps {
   open: boolean
@@ -35,7 +24,7 @@ export function PersonRolesDialog({ open, member, availableRoles, onClose }: Per
   const [error, setError] = useState<string | null>(null)
   const [showRoleConfig, setShowRoleConfig] = useState(false)
 
-  const catalog = availableRoles.length > 0 ? availableRoles : DEFAULT_ROLES
+  const catalog = availableRoles.length > 0 ? availableRoles : DEFAULT_MUSICAL_ROLES
 
   useEffect(() => {
     if (member) {

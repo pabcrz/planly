@@ -5,6 +5,7 @@ import { adminApi } from '@/services/adminService'
 import { toastPromise, toastSuccess } from '@/lib/toast'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { FormField } from '@/components/shared/FormField'
 
 const roles: { id: ChurchRole; label: string }[] = [
   { id: 'member', label: 'Miembro' },
@@ -93,25 +94,24 @@ export function InvitePersonDialog({ open, churchId, onClose, onSuccess }: Invit
         </div>
       ) : (
         <form onSubmit={submit} noValidate className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Correo electrónico *
-            </label>
+          <FormField
+            id="invite-person-email"
+            label={<>Correo electrónico <span aria-hidden="true">*</span></>}
+            error={errors.email}
+          >
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
               placeholder="ejemplo@correo.com"
-              aria-invalid={Boolean(errors.email)}
             />
-            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
-          </div>
+          </FormField>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Perfil de Seguridad *
-            </label>
+          <FormField
+            id="invite-person-role"
+            label={<>Perfil de Seguridad <span aria-hidden="true">*</span></>}
+          >
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as ChurchRole)}
@@ -123,7 +123,7 @@ export function InvitePersonDialog({ open, churchId, onClose, onSuccess }: Invit
                 </option>
               ))}
             </select>
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="ghost" onClick={handleClose}>

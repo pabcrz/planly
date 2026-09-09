@@ -5,17 +5,16 @@ import { getService, getSetlistById } from '@/services/serviceService'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { isManagerRole } from '@/lib/roles'
 import { formatServiceDate, formatServiceTime } from './serviceFormat'
 import { SetlistEditor } from './SetlistEditor'
-
-const MANAGER_ROLES = new Set(['church_admin', 'worship_director'])
 
 // Standalone setlist route (/setlists/:id): same editor as the service detail
 // page, with a link back to the parent service.
 export function SetlistPage() {
   const { id } = useParams()
   const { activeMembership } = useChurch()
-  const canManage = activeMembership ? MANAGER_ROLES.has(activeMembership.role) : false
+  const canManage = activeMembership ? isManagerRole(activeMembership.role) : false
 
   const { data: setlist, isLoading, error } = useQuery({
     queryKey: ['setlist', id],
